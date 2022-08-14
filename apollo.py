@@ -1,7 +1,8 @@
 import discord
+from discord.ext import commands
 import logging
 
-client = discord.Client()
+client = commands.Bot(command_prefix='/', description="This is a Helper Bot")
 
 ###Logger
 logging.basicConfig(level=logging.INFO)
@@ -11,16 +12,22 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+###Events
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
+    print('------')
+    print('Logged in as')
+    print('{0.user}'.format(client))
+    print(client.user.id)
+    print('------')
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+##@bot.listen()
+##async def on_message(message):
+    ##await bot.process_commands(message)
 
-##    if message.content.startswith('$hello'):
-##        await message.channel.send('Hello!')
+###Commands
+@client.command()
+async def ping(ctx):
+    await ctx.send('pong')
 
 client.run('TOKENHERE')
