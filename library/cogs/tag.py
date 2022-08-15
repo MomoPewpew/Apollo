@@ -37,4 +37,4 @@ class Tag(Cog):
             self.bot.cogs_ready.ready_up(COG_NAME)
 
 async def setup(bot) -> None:
-    await bot.add_cog(Tag(bot), guilds = [discord.Object(id = 1008374239688151111)])
+    await bot.add_cog(Tag(bot))

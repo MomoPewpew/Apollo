@@ -104,7 +104,7 @@ class Bot(BotBase):
                 await asyncio.sleep(0.5)
             
             self.ready = True
-            print("  Bot ready")
+            print("Bot ready. Awaiting inputs.")
 
         else:
             print("Bot reconnected")
