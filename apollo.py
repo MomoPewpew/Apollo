@@ -1,10 +1,13 @@
-from operator import truediv
+from . import db
 import discord
 from discord import app_commands
 import logging
 
 ###Finals
 BOZZA_MANSION = discord.Object(id = 1008374239688151111)
+
+###Database
+db.build
 
 ###Logger
 logging.basicConfig(level=logging.INFO)
@@ -36,4 +39,4 @@ tree = app_commands.CommandTree(client)
 async def ping(interaction: discord.Interaction, name: str):
     await interaction.response.send_message(f"Hello {name}! I was made with Discord.py!", ephemeral = True)
 
-client.run('TOKENHERE')
+client.run('MTAwODM2NzkyNzUzMzI0NDU0Nw.GhJvm4.SU90FVAgUSGw1UksY9fkbgmoGifvl5ztcE8ano')
