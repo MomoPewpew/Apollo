@@ -113,6 +113,6 @@ class Bot(BotBase):
         if message.author.id == self.user.id:
             return
         
-        await self.process_commands(message)
+        await bot.process_commands(message)
 
 bot = Bot()

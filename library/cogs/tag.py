@@ -14,8 +14,11 @@ class Tag(Cog):
         name="tag",
         description = "Add or toggle tags on yourself to keep track of what you are currently working on."
     )
-    async def command_tag(self, ctx):
-        await ctx.send( f"Hello {ctx.author.mention}!")
+    async def command_tag(
+        self, interaction: discord.Interaction,
+        tagname: str
+    ) -> None:
+        await interaction.response.send_message( f"Hello!")
 
     def has_tag(self, user):
         if self.tags_active(user):
