@@ -3,6 +3,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord.ext.commands import Bot as BotBase
 from discord.ext.commands import CommandNotFound
 
+from ..db import db
+
 PREFIX = "/"
 OWNER_IDS = [108296164599734272]
 ##BOZZA_MANSION = discord.Object(id = 1008374239688151111)
@@ -17,6 +19,7 @@ class Bot(BotBase):
         intents = Intents.default()
         intents.members = True
 
+        db.autosave(self.scheduler)
         super().__init__(
             command_prefix=PREFIX,
             owner_ids = OWNER_IDS,
@@ -59,6 +62,7 @@ class Bot(BotBase):
             self.ready = True
             print("bot ready")
             self.guild = self.get_guild(1008374239688151111)
+            self.scheduler.start()
 
         else:
             print("bot reconnected")

@@ -3,12 +3,12 @@ CREATE TABLE IF NOT EXISTS prompts (
     promptType string,
     promptString string,
     userID integer,
-    promptTags string[],
+    promptTags string,
     timeStamp text DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS users (
     userID integer PRIMARY_KEY,
-    promptTagsActive string[],
-    promptTagsInactive string[]
+    promptTagsActive string,
+    promptTagsInactive string
 );
