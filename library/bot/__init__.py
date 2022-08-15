@@ -1,6 +1,7 @@
 from discord import Intents
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord.ext.commands import Bot as BotBase
+from discord.ext.commands import CommandNotFound
 
 PREFIX = "/"
 OWNER_IDS = [108296164599734272]
@@ -37,11 +38,28 @@ class Bot(BotBase):
     async def on_disconnect(self):
         print("bot disconnected")
     
+    async def on_error(self, err, *args, **kwargs):
+        if err == "on_command_error":
+            await args[0].send("Something went wrong.")
+        
+        channel = self.get_channel(1008386261368705024)
+        await channel.send("An error has occurred.")
+        raise
+    
+    async def on_command_error(self, ctx, exc):
+        if isinstance(exc, CommandNotFound):
+            pass
+        elif hasattr(exc, "original"):
+            raise exc.original
+        else:
+            raise exc
+
     async def on_ready(self):
         if not self.ready:
+            self.ready = True
             print("bot ready")
             self.guild = self.get_guild(1008374239688151111)
-            self.ready = True
+
         else:
             print("bot reconnected")
 
