@@ -110,7 +110,9 @@ class Bot(BotBase):
             print("Bot reconnected")
 
     async def on_message(self, message):
-        if not message.author.bot:
-            await self.process_commands(message)
+        if message.author.id == self.user.id:
+            return
+        
+        await self.process_commands(message)
 
 bot = Bot()
