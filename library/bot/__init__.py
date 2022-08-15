@@ -1,6 +1,6 @@
+from discord import Intents
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord.ext.commands import Bot as BotBase
-import discord
 
 PREFIX = "/"
 OWNER_IDS = [108296164599734272]
@@ -13,7 +13,14 @@ class Bot(BotBase):
         self.guild = None
         self.scheduler = AsyncIOScheduler()
 
-        super().__init__(command_prefix=PREFIX, owner_ids = OWNER_IDS, intents=discord.Intents.default())
+        intents = Intents.default()
+        intents.members = True
+
+        super().__init__(
+            command_prefix=PREFIX,
+            owner_ids = OWNER_IDS,
+            intents=intents
+        )
     
     def run(self, version):
         self.VERSION = version
