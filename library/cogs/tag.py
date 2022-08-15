@@ -17,17 +17,17 @@ class Tag(Cog):
     async def command_tag(self, ctx):
         await ctx.send( f"Hello {ctx.author.mention}!")
 
-    def has_tag(user):
-        if self.has_tag_active(user):
+    def has_tag(self, user):
+        if self.tags_active(user):
             return True
-        elif self.has_tag_inactive(user):
+        elif self.tags_inactive(user):
             return True
 
-    def tags_active(user):
+    def tags_active(self, user):
         tags = "tag"
         return tags
 
-    def tags_inactive(user):
+    def tags_inactive(self, user):
         tags = "tag"
         return tags
 

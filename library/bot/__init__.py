@@ -14,7 +14,7 @@ PREFIX = "/"
 APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
-BOZZA_MANSION = discord.Object(id = 1008374239688151111)
+GUILDS = [discord.Object(id = 1008374239688151111)]
 
 class Ready(object):
     def __init__(self):
@@ -55,8 +55,9 @@ class Bot(BotBase):
         print("Setup complete")
 
     async def setup_hook(self):
-        self.tree.copy_global_to(guild=BOZZA_MANSION)
-        await self.tree.sync(guild=BOZZA_MANSION)
+        for guild in GUILDS:
+            self.tree.copy_global_to(guild=guild)
+            await self.tree.sync(guild=guild)
 
     async def main(self):
         async with bot:
