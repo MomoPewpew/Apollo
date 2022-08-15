@@ -1,3 +1,6 @@
+from asyncio import sleep
+from glob import glob
+
 from discord import Intents
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord.ext.commands import Bot as BotBase
@@ -7,12 +10,27 @@ from ..db import db
 
 PREFIX = "/"
 OWNER_IDS = [108296164599734272]
+COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
 ##BOZZA_MANSION = discord.Object(id = 1008374239688151111)
+
+class Ready(object):
+    def __init__(self):
+        for cog in COGS:
+            setattr(self, cog, False)
+
+    def ready_up(self, cog):
+        setattr(self, cog, True)
+        print(f"  {cog} cog ready")
+
+    def all_ready(self):
+        return all([getattr(self, cog) for cog in COGS])
 
 class Bot(BotBase):
     def __init__(self):
         self.PREFIX = PREFIX
         self.ready = False
+        self.cogs_ready = Ready()
+        
         self.guild = None
         self.scheduler = AsyncIOScheduler()
 
@@ -26,27 +44,36 @@ class Bot(BotBase):
             intents=intents
         )
     
+    def setup(self):
+        for cog in COGS:
+            self.load_extension( f"lib.cogs.{cog}")
+            print(f"  {cog} cog loaded")
+        
+        print("Setup complete")
+
     def run(self, version):
         self.VERSION = version
+
+        print("Running setup...")
+        self.setup()
 
         with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
             self.TOKEN = tf.read()
         
-        print("running bot...")
+        print("Running bot...")
         super().run(self.TOKEN, reconnect=True)
 
     async def on_connect(self):
-        print("bot connected")
+        print("  Bot connected")
 
     async def on_disconnect(self):
-        print("bot disconnected")
+        print("Bot disconnected")
     
     async def on_error(self, err, *args, **kwargs):
         if err == "on_command_error":
             await args[0].send("Something went wrong.")
         
-        channel = self.get_channel(1008386261368705024)
-        await channel.send("An error has occurred.")
+        await self.stdout.send("An error has occurred.")
         raise
     
     async def on_command_error(self, ctx, exc):
@@ -59,13 +86,18 @@ class Bot(BotBase):
 
     async def on_ready(self):
         if not self.ready:
-            self.ready = True
-            print("bot ready")
             self.guild = self.get_guild(1008374239688151111)
+            self.stdout = self.get_channel(1008386261368705024)
             self.scheduler.start()
 
+            while not self.cogs_ready.all_ready():
+                await sleep(0.5)
+            
+            self.ready = True
+            print("  Bot ready")
+
         else:
-            print("bot reconnected")
+            print("Bot reconnected")
 
     async def on_message(self, message):
         pass
