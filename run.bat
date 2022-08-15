@@ -1,3 +1,3 @@
-call bot-env\Scripts\activate.bat
-py -3 launcher.py
+@echo off
+cmd /k "cd /d bot-env\Scripts & activate & cd /d    ../../ & python launcher.py"
 pause
