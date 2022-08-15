@@ -1,4 +1,4 @@
-from asyncio import sleep
+import asyncio
 from glob import glob
 
 from discord import Intents
@@ -44,24 +44,27 @@ class Bot(BotBase):
             intents=intents
         )
     
-    def setup(self):
+    async def setup(self):
         for cog in COGS:
-            self.load_extension( f"lib.cogs.{cog}")
+            await self.load_extension( f"library.cogs.{cog}")
             print(f"  {cog} cog loaded")
         
         print("Setup complete")
 
+    async def main(self):
+        async with bot:
+            print("Running setup...")
+            await self.setup()
+            print("Running bot...")
+            await bot.start(self.TOKEN, reconnect=True)
+
     def run(self, version):
         self.VERSION = version
-
-        print("Running setup...")
-        self.setup()
 
         with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
             self.TOKEN = tf.read()
         
-        print("Running bot...")
-        super().run(self.TOKEN, reconnect=True)
+        asyncio.run(self.main())
 
     async def on_connect(self):
         print("  Bot connected")
@@ -91,7 +94,7 @@ class Bot(BotBase):
             self.scheduler.start()
 
             while not self.cogs_ready.all_ready():
-                await sleep(0.5)
+                await asyncio.sleep(0.5)
             
             self.ready = True
             print("  Bot ready")
