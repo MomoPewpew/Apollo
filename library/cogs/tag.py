@@ -16,7 +16,7 @@ class Tag(Cog):
     )
     async def command_tag(
         self, interaction: discord.Interaction,
-        tagname: str
+        tag_name: str=""
     ) -> None:
         await interaction.response.send_message( f"Hello!")
 
