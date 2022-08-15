@@ -1,17 +1,20 @@
 import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from glob import glob
 
+import discord
 from discord import Intents
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from discord import app_commands
 from discord.ext.commands import Bot as BotBase
 from discord.ext.commands import CommandNotFound
 
 from ..db import db
 
 PREFIX = "/"
+APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
-##BOZZA_MANSION = discord.Object(id = 1008374239688151111)
+BOZZA_MANSION = discord.Object(id = 1008374239688151111)
 
 class Ready(object):
     def __init__(self):
@@ -31,7 +34,6 @@ class Bot(BotBase):
         self.ready = False
         self.cogs_ready = Ready()
         
-        self.guild = None
         self.scheduler = AsyncIOScheduler()
 
         intents = Intents.default()
@@ -39,7 +41,8 @@ class Bot(BotBase):
 
         db.autosave(self.scheduler)
         super().__init__(
-            command_prefix=PREFIX,
+            command_prefix = PREFIX,
+            application_id = APP_ID,
             owner_ids = OWNER_IDS,
             intents=intents
         )
@@ -50,6 +53,10 @@ class Bot(BotBase):
             print(f"  {cog} cog loaded")
         
         print("Setup complete")
+
+    async def setup_hook(self):
+        self.tree.copy_global_to(guild=BOZZA_MANSION)
+        await self.tree.sync(guild=BOZZA_MANSION)
 
     async def main(self):
         async with bot:
@@ -89,7 +96,6 @@ class Bot(BotBase):
 
     async def on_ready(self):
         if not self.ready:
-            self.guild = self.get_guild(1008374239688151111)
             self.stdout = self.get_channel(1008386261368705024)
             self.scheduler.start()
 
@@ -103,6 +109,7 @@ class Bot(BotBase):
             print("Bot reconnected")
 
     async def on_message(self, message):
-        pass
+        if not message.author.bot:
+            await self.process_commands(message)
 
 bot = Bot()

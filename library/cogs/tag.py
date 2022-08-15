@@ -1,15 +1,40 @@
+from ast import alias
+import discord
+from discord import app_commands
 from discord.ext.commands import Cog
+from discord.ext.commands import command
 
 COG_NAME = "tag"
 
 class Tag(Cog):
-    def __init__(self, bot):
+    def __init__(self, bot) -> None:
         self.bot = bot
     
+    @app_commands.command(
+        name="tag",
+        description = "Add or toggle tags on yourself to keep track of what you are currently working on."
+    )
+    async def command_tag(self, ctx):
+        await ctx.send( f"Hello {ctx.author.mention}!")
+
+    def has_tag(user):
+        if self.has_tag_active(user):
+            return True
+        elif self.has_tag_inactive(user):
+            return True
+
+    def tags_active(user):
+        tags = "tag"
+        return tags
+
+    def tags_inactive(user):
+        tags = "tag"
+        return tags
+
     @Cog.listener()
     async def on_ready(self):
         if not self.bot.ready:
             self.bot.cogs_ready.ready_up(COG_NAME)
 
-async def setup(bot):
-    await bot.add_cog(Tag(bot))
+async def setup(bot) -> None:
+    await bot.add_cog(Tag(bot), guilds = [discord.Object(id = 1008374239688151111)])
