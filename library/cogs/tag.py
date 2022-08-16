@@ -27,7 +27,7 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
-            await self.show_tag_menu(interaction, userID, f"These are your tags. Green tags are active, red tags are not. Click the tag name to toggle it, and the X to delete a tag.")
+            await self.show_tag_menu(interaction, userID, f"These are your tags. Green tags are active, red tags are not.")
         elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
             await interaction.response.send_message( f"Tag names may only include alphanumeric characters and underscores. Such as example_tag_2", ephemeral=True)
         elif self.bot.user_manager.has_tag(userID, tag_name):
@@ -92,4 +92,4 @@ class Delete_button(Button):
     async def callback(self, interaction):
         userID = self.bot.user_manager.get_user_id(interaction.user)
         self.bot.user_manager.remove_tag(userID, self.tag_name)
-        await self.cog.show_tag_menu(interaction, userID, f"The tag " + self.tag_name + " has been deleted. Your history with this tag still exists. The tag has simply been removed from this menu.")
+        await self.cog.show_tag_menu(interaction, userID, f"The tag " + self.tag_name + " has been deleted.")
