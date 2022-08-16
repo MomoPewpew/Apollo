@@ -1,7 +1,9 @@
 from ast import alias
+from turtle import end_fill
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
+import re
 
 COG_NAME = "tag"
 
@@ -28,7 +30,12 @@ class Tag(Cog):
         if tag_name == "":
             await interaction.response.send_message( f"This will show the tag menu soon.", ephemeral=True)
             await self.show_tag_menu(userID)
-        elif self.bot.user_manager.has_tag(userID, tag_name):
+            return
+        elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
+            await interaction.response.send_message( f"Tag names may only include alphanumeric characters and underscores. Such as example_tag_2", ephemeral=True)
+            return
+
+        if self.bot.user_manager.has_tag(userID, tag_name):
             self.toggle_tag(userID, tag_name)
             await interaction.response.send_message( f"The tag " + tag_name + " has been toggled.", ephemeral=True)
             await self.show_tag_menu(userID)
