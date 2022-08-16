@@ -46,7 +46,6 @@ def records(command, *values):
 
     return cur.fetchall()
 
-
 def column(command, *values):
     cur.execute(command, tuple(values))
 

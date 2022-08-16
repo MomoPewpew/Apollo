@@ -2,7 +2,6 @@ from ast import alias
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
-from discord.ext.commands import command
 
 COG_NAME = "tag"
 
@@ -18,21 +17,33 @@ class Tag(Cog):
         self, interaction: discord.Interaction,
         tag_name: str=""
     ) -> None:
-        await interaction.response.send_message( f"Hello!")
+        await self.function_tag(
+            interaction,
+            tag_name
+        )
 
-    def has_tag(self, user):
-        if self.tags_active(user):
-            return True
-        elif self.tags_inactive(user):
-            return True
+    async def function_tag(self, interaction, tag_name):
+        userID = self.bot.user_manager.get_user_id(interaction.user)
 
-    def tags_active(self, user):
-        tags = "tag"
-        return tags
+        if tag_name == "":
+            self.show_tag_menu(userID)
+        elif self.bot.user_manager.has_tag(userID, tag_name):
+            self.toggle_tag(userID, tag_name)
+            await interaction.response.send_message( f"The tag " + tag_name + " has been toggled.", ephemeral=True)
+            self.show_tag_menu(userID)
+        else:
+            self.bot.user_manager.add_tag_active(userID, tag_name)
+            await interaction.response.send_message( f"The tag " + tag_name + " has been added to your user and activated.", ephemeral=True)
+            self.show_tag_menu(userID)
 
-    def tags_inactive(self, user):
-        tags = "tag"
-        return tags
+    async def show_tag_menu(self, userID):
+        pass
+
+    async def toggle_tag(self, userID, tag_name):
+        if self.bot.user_manager.has_tag_active(userID, tag_name):
+            pass
+        else:
+            pass
 
     @Cog.listener()
     async def on_ready(self):
