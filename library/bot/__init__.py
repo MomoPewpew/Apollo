@@ -175,6 +175,22 @@ class Manage_users(object):
         db.execute("UPDATE users SET promptTagsActive = promptTagsInctive || ? WHERE UserID = ?",
             tag_name + ",",
             userID)
+    
+    def remove_tag(self, userID, tag_name):
+        tagTemp = "," + tag_name + ","
+
+        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
+        newTags = tags[0].replace(tagTemp, "")
+        db.execute("UPDATE users SET promptTagsActive = ? WHERE UserID = ?",
+            newTags,
+            userID)
+        
+        tags = db.record("SELECT promptTagsInctive FROM users WHERE userID = ?", userID)
+        newTags = tags[0].replace(tagTemp, "")
+        db.execute("UPDATE users SET promptTagsInctive = ? WHERE UserID = ?",
+            newTags,
+            userID)
+
 
 class Manage_prompts(object):
     def add_prompt(self, promptType, promptString, userID, promptTags):
