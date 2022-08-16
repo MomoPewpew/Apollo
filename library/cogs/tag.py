@@ -31,11 +31,11 @@ class Tag(Cog):
         elif self.bot.user_manager.has_tag(userID, tag_name):
             self.toggle_tag(userID, tag_name)
             await interaction.response.send_message( f"The tag " + tag_name + " has been toggled.", ephemeral=True)
-            self.show_tag_menu(userID)
+            await self.show_tag_menu(userID)
         else:
             self.bot.user_manager.add_tag_active(userID, tag_name)
             await interaction.response.send_message( f"The tag " + tag_name + " has been added to your user and activated.", ephemeral=True)
-            self.show_tag_menu(userID)
+            await self.show_tag_menu(userID)
 
     async def show_tag_menu(self, userID):
         pass

@@ -142,7 +142,7 @@ class Manage_users(object):
         return userID
     
     def has_tag(self, userID, tag_name):
-        return self.has_tag_active(userID, tag_name) and self.has_tag_inactive(userID, tag_name)
+        return self.has_tag_active(userID, tag_name) or self.has_tag_inactive(userID, tag_name)
 
     def has_tag_active(self, userID, tag_name):
         if tag_name in self.get_tags_active(userID):
@@ -158,21 +158,21 @@ class Manage_users(object):
 
     def get_tags_active(self, userID):
         tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
-        tagsArray = tags.split(",")
+        tagsArray = tags[0].split(",")
         return tagsArray
 
     def get_tags_inactive(self, userID):
         tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
-        tagsArray = tags.split(",")
+        tagsArray = tags[0].split(",")
         return tagsArray
     
     def add_tag_active(self, userID, tag_name):
-        db.execute("UPDATE users SET promptTagsActive = promptTagsActive + ? WHERE UserID = ?",
+        db.execute("UPDATE users SET promptTagsActive = promptTagsActive || ? WHERE UserID = ?",
             tag_name + ",",
             userID)
     
     def add_tag_inactive(self, userID, tag_name):
-        db.execute("UPDATE users SET promptTagsActive = promptTagsInctive + ? WHERE UserID = ?",
+        db.execute("UPDATE users SET promptTagsActive = promptTagsInctive || ? WHERE UserID = ?",
             tag_name + ",",
             userID)
 
