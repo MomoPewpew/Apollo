@@ -45,16 +45,14 @@ class Tag(Cog):
     async def show_tag_menu(self, interaction, userID, description):
         embed = Embed(title="Tags", description=description, colour=0x2F3136)
         embed.set_author(name="Apollo", icon_url="")
-        embed.set_footer(text="This is a footer!")
+        embed.set_footer(text="___________________________________________________________________________________________")
 
         tags = sorted(self.bot.user_manager.get_tags_active(userID) + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
-        i = 0
         for tag in tags:
             embed.add_field(name="tagname", value="tagvalue", inline=True)
             embed.add_field(name="togglename", value="togglevalue", inline=True)
             embed.add_field(name="deletename", value="deletevalue", inline=True)
-            i += 1
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 

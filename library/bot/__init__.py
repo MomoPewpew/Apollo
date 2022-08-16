@@ -158,12 +158,12 @@ class Manage_users(object):
 
     def get_tags_active(self, userID):
         tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
-        tagsArray = tags[0].split(",")
+        tagsArray = tags[0][1:-1].split(",")
         return tagsArray
 
     def get_tags_inactive(self, userID):
         tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
-        tagsArray = tags[0].split(",")
+        tagsArray = tags[0][1:-1].split(",")
         return tagsArray
     
     def add_tag_active(self, userID, tag_name):
