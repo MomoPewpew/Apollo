@@ -1,7 +1,6 @@
-from ast import alias
-from turtle import end_fill
 import discord
 from discord import app_commands
+from discord import Embed
 from discord.ext.commands import Cog
 import re
 
@@ -28,33 +27,36 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
-            await interaction.response.send_message( f"This will show the tag menu soon.", ephemeral=True)
-            await self.show_tag_menu(userID)
-            return
+            await self.show_tag_menu(interaction, userID, f"These are your tags. Green tags are active, red tags are not.")
         elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
             await interaction.response.send_message( f"Tag names may only include alphanumeric characters and underscores. Such as example_tag_2", ephemeral=True)
-            return
-
-        if self.bot.user_manager.has_tag(userID, tag_name):
-            await self.toggle_tag(interaction, userID, tag_name)
-            await self.show_tag_menu(userID)
-        else:
-            self.bot.user_manager.add_tag_active(userID, tag_name)
-            await interaction.response.send_message( f"The tag " + tag_name + " has been added to your user and activated.", ephemeral=True)
-            await self.show_tag_menu(userID)
-
-    async def show_tag_menu(self, userID):
-        pass
-
-    async def toggle_tag(self, interaction, userID, tag_name):
-        if self.bot.user_manager.has_tag_active(userID, tag_name):
+        elif self.bot.user_manager.has_tag_active(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
             self.bot.user_manager.add_tag_inactive(userID, tag_name)
-            await interaction.response.send_message( f"The tag " + tag_name + " has been turned off.", ephemeral=True)
-        else:
+            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned off.")
+        elif self.bot.user_manager.has_tag_inactive(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
             self.bot.user_manager.add_tag_active(userID, tag_name)
-            await interaction.response.send_message( f"The tag " + tag_name + " has been turned on.", ephemeral=True)
+            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
+        else:
+            self.bot.user_manager.add_tag_active(userID, tag_name)
+            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been added to your user and turned on.")
+
+    async def show_tag_menu(self, interaction, userID, description):
+        embed = Embed(title="Tags", description=description, colour=0x2F3136)
+        embed.set_author(name="Apollo", icon_url="")
+        embed.set_footer(text="This is a footer!")
+
+        tags = sorted(self.bot.user_manager.get_tags_active(userID) + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
+
+        i = 0
+        for tag in tags:
+            embed.add_field(name="tagname", value="tagvalue", inline=True)
+            embed.add_field(name="togglename", value="togglevalue", inline=True)
+            embed.add_field(name="deletename", value="deletevalue", inline=True)
+            i += 1
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self):
