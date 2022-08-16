@@ -177,18 +177,14 @@ class Manage_users(object):
             userID)
     
     def remove_tag(self, userID, tag_name):
-        tagTemp = "," + tag_name + ","
-
-        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
-        newTags = tags[0].replace(tagTemp, "")
-        db.execute("UPDATE users SET promptTagsActive = ? WHERE UserID = ?",
-            newTags,
+        db.execute("UPDATE users SET promptTagsActive = replace(promptTagsActive, ?, ',') WHERE promptTagsActive LIKE ? AND UserID = ?",
+            "," + tag_name + ",",
+            "%," + tag_name + ",%",
             userID)
         
-        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
-        newTags = tags[0].replace(tagTemp, "")
-        db.execute("UPDATE users SET promptTagsInactive = ? WHERE UserID = ?",
-            newTags,
+        db.execute("UPDATE users SET promptTagsInactive = replace(promptTagsInactive, ?, ',') WHERE promptTagsInactive LIKE ? AND UserID = ?",
+            "," + tag_name + ",",
+            "%," + tag_name + ",%",
             userID)
 
 
