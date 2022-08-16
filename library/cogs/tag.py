@@ -50,9 +50,10 @@ class Tag(Cog):
         tags = sorted(self.bot.user_manager.get_tags_active(userID) + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
         for tag in tags:
-            embed.add_field(name="tagname", value="tagvalue", inline=True)
-            embed.add_field(name="togglename", value="togglevalue", inline=True)
-            embed.add_field(name="deletename", value="deletevalue", inline=True)
+            if tag != "":
+                embed.add_field(name="Tag Name", value=tag, inline=True)
+                embed.add_field(name="Toggle", value="[Toggle]", inline=True)
+                embed.add_field(name="Delete", value="[X]", inline=True)
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
