@@ -20,7 +20,7 @@ class Tag(Cog):
     ) -> None:
         await self.function_tag(
             interaction,
-            tag_name
+            tag_name.lower()
         )
 
     async def function_tag(self, interaction, tag_name):
@@ -47,12 +47,16 @@ class Tag(Cog):
         embed.set_author(name="Apollo", icon_url="")
         embed.set_footer(text="___________________________________________________________________________________________")
 
-        tags = sorted(self.bot.user_manager.get_tags_active(userID) + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
+        activeTags = self.bot.user_manager.get_tags_active(userID)
+        tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
         for tag in tags:
             if tag != "":
+                status = ""
+                if tag in activeTags: status = "[On]"
+                else: status = "[Off]"
                 embed.add_field(name="Tag Name", value=tag, inline=True)
-                embed.add_field(name="Toggle", value="[Toggle]", inline=True)
+                embed.add_field(name="Status", value=status, inline=True)
                 embed.add_field(name="Delete", value="[X]", inline=True)
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
