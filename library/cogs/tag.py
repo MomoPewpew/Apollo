@@ -10,7 +10,7 @@ class Tag(Cog):
         self.bot = bot
     
     @app_commands.command(
-        name="tag",
+        name=COG_NAME,
         description = "Add or toggle tags on yourself to keep track of what you are currently working on."
     )
     async def command_tag(
@@ -26,7 +26,8 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
-            self.show_tag_menu(userID)
+            await interaction.response.send_message( f"This will show the tag menu soon.", ephemeral=True)
+            await self.show_tag_menu(userID)
         elif self.bot.user_manager.has_tag(userID, tag_name):
             self.toggle_tag(userID, tag_name)
             await interaction.response.send_message( f"The tag " + tag_name + " has been toggled.", ephemeral=True)

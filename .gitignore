@@ -152,3 +152,4 @@ cython_debug/
 #.idea/
 token.txt
 library/bot/token.0
+data/db/database.db

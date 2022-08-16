@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS prompts (
-    promptID integer PRIMARY_KEY,
+    promptID integer PRIMARY KEY,
     promptType string,
     promptString string,
     userID integer,
@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS prompts (
 );
 
 CREATE TABLE IF NOT EXISTS users (
-    userID integer PRIMARY_KEY,
+    userID integer PRIMARY KEY,
     promptTagsActive string DEFAULT ",",
     promptTagsInactive string DEFAULT ","
 );

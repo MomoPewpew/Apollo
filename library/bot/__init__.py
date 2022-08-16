@@ -25,13 +25,10 @@ class Bot(BotBase):
         self.user_manager = Manage_users()
         self.prompt_manager = Manage_prompts()
         self.server_manager = Manager_server()
-        
-        self.scheduler = AsyncIOScheduler()
 
         intents = Intents.default()
         intents.members = True
 
-        db.autosave(self.scheduler)
         super().__init__(
             command_prefix = PREFIX,
             application_id = APP_ID,
@@ -100,6 +97,9 @@ class Bot(BotBase):
     async def on_ready(self):
         if not self.ready:
             self.stdout = self.get_channel(1008386261368705024)
+
+            self.scheduler = AsyncIOScheduler(timezone="utc")
+            db.autosave(self.scheduler)
             self.scheduler.start()
 
             print("Awaiting cog setup...")
