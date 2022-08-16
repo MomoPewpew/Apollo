@@ -36,8 +36,7 @@ class Tag(Cog):
             return
 
         if self.bot.user_manager.has_tag(userID, tag_name):
-            self.toggle_tag(userID, tag_name)
-            await interaction.response.send_message( f"The tag " + tag_name + " has been toggled.", ephemeral=True)
+            await self.toggle_tag(interaction, userID, tag_name)
             await self.show_tag_menu(userID)
         else:
             self.bot.user_manager.add_tag_active(userID, tag_name)
@@ -47,11 +46,15 @@ class Tag(Cog):
     async def show_tag_menu(self, userID):
         pass
 
-    async def toggle_tag(self, userID, tag_name):
+    async def toggle_tag(self, interaction, userID, tag_name):
         if self.bot.user_manager.has_tag_active(userID, tag_name):
-            pass
+            self.bot.user_manager.remove_tag(userID, tag_name)
+            self.bot.user_manager.add_tag_inactive(userID, tag_name)
+            await interaction.response.send_message( f"The tag " + tag_name + " has been turned off.", ephemeral=True)
         else:
-            pass
+            self.bot.user_manager.remove_tag(userID, tag_name)
+            self.bot.user_manager.add_tag_active(userID, tag_name)
+            await interaction.response.send_message( f"The tag " + tag_name + " has been turned on.", ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self):

@@ -172,7 +172,7 @@ class Manage_users(object):
             userID)
     
     def add_tag_inactive(self, userID, tag_name):
-        db.execute("UPDATE users SET promptTagsActive = promptTagsInctive || ? WHERE UserID = ?",
+        db.execute("UPDATE users SET promptTagsInactive = promptTagsInactive || ? WHERE UserID = ?",
             tag_name + ",",
             userID)
     
@@ -185,9 +185,9 @@ class Manage_users(object):
             newTags,
             userID)
         
-        tags = db.record("SELECT promptTagsInctive FROM users WHERE userID = ?", userID)
+        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
         newTags = tags[0].replace(tagTemp, "")
-        db.execute("UPDATE users SET promptTagsInctive = ? WHERE UserID = ?",
+        db.execute("UPDATE users SET promptTagsInactive = ? WHERE UserID = ?",
             newTags,
             userID)
 
