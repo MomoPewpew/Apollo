@@ -19,10 +19,10 @@ GUILDS = [discord.Object(id = 1008374239688151111)]
 class Bot(BotBase):
     def __init__(self) -> None:
         self.ready = False
-        self.cog_manager = Manage_cogs()
-        self.user_manager = Manage_users()
-        self.prompt_manager = Manage_prompts()
-        self.task_manager = Manage_tasks()
+        self.cog_manager = Cog_manager()
+        self.user_manager = User_manager()
+        self.prompt_manager = Prompt_manager()
+        self.task_manager = Task_manager()
 
         intents = Intents.default()
         intents.members = True
@@ -34,6 +34,23 @@ class Bot(BotBase):
             intents=intents
         )
     
+    ###Setup
+    def run(self, version: str) -> None:
+        self.VERSION = version
+
+        with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
+            self.TOKEN = tf.read()
+        
+        asyncio.run(self.main())
+        return super().run()
+
+    async def main(self) -> None:
+        async with bot:
+            print("Running setup...")
+            await self.setup()
+            print("Connecting...")
+            await bot.start(self.TOKEN, reconnect=True)
+
     async def setup(self) -> None:
         for cog in COGS:
             await self.load_extension( f"library.cogs.{cog}")
@@ -48,22 +65,6 @@ class Bot(BotBase):
         
         return await super().setup_hook()
 
-    async def main(self) -> None:
-        async with bot:
-            print("Running setup...")
-            await self.setup()
-            print("Connecting...")
-            await bot.start(self.TOKEN, reconnect=True)
-
-    def run(self, version: str) -> None:
-        self.VERSION = version
-
-        with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
-            self.TOKEN = tf.read()
-        
-        asyncio.run(self.main())
-        return super().run()
-
     ##Not sure if this is going to actually work. So far it doesn't hurt.
     async def process_commands(self, message: discord.Message, /) -> None:
         ctx = await self.get_context(message, cls=Context)
@@ -75,27 +76,12 @@ class Bot(BotBase):
                 await ctx.send("I'm not ready to receive commands. Please wait a few seconds.")
         return await super().process_commands(message)
 
+    ###Listeners
     async def on_connect(self) -> None:
         print("  Bot connected")
 
     async def on_disconnect(self) -> None:
         print("Bot disconnected")
-        
-    async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
-        if err == "on_command_error":
-            await args[0].send("Something went wrong.")
-        
-        await self.stdout.send("An error has occurred.")
-        raise
-    
-    async def on_command_error(self, context: Context, exception: errors.CommandError, /) -> None:
-        if isinstance(exception, CommandNotFound):
-            pass
-        elif hasattr(exception, "original"):
-            raise exception.original
-        else:
-            raise exception
-        return await super().on_command_error(context, exception)
 
     async def on_ready(self) -> None:
         if not self.ready:
@@ -121,7 +107,23 @@ class Bot(BotBase):
         
         await bot.process_commands(message)
 
-class Manage_cogs(object):
+    async def on_error(self, event_method: str, /, *args, **kwargs) -> None:
+        if err == "on_command_error":
+            await args[0].send("Something went wrong.")
+        
+        await self.stdout.send("An error has occurred.")
+        raise
+    
+    async def on_command_error(self, context: Context, exception: errors.CommandError, /) -> None:
+        if isinstance(exception, CommandNotFound):
+            pass
+        elif hasattr(exception, "original"):
+            raise exception.original
+        else:
+            raise exception
+        return await super().on_command_error(context, exception)
+
+class Cog_manager(object):
     def __init__(self) -> None:
         for cog in COGS:
             setattr(self, cog, False)
@@ -133,7 +135,7 @@ class Manage_cogs(object):
     def all_ready(self) -> Boolean:
         return all([getattr(self, cog) for cog in COGS])
 
-class Manage_users(object):
+class User_manager(object):
     ##This is handled via a separate function in case we want to hardcode certain users to other id's (such as rawb having two discord accounts, or a user wanting a separate database entry for the same discord user for some reason)
     ##This is also a good place to ensure that the user even has an entry to begin with
     def get_user_id(self, user: int) -> int:
@@ -190,15 +192,14 @@ class Manage_users(object):
             "%," + tag_name + ",%",
             userID)
 
-
-class Manage_prompts(object):
+class Prompt_manager(object):
     def add_prompt(self, promptType: str, promptString: str, userID: int, promptTags: str) -> None:
         pass
 
     def get_prompts(self, userID: int, tags: List[str]) -> List[str]:
         pass
 
-class Manage_tasks(object):
+class Task_manager(object):
     def add_task(self, receiveType: str, userID: int, channelID: int, instruction: str) -> None:
         pass
 
