@@ -27,7 +27,7 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
-            await self.show_tag_menu(interaction, userID, f"These are your tags. Green tags are active, red tags are not.")
+            await self.show_tag_menu(interaction, userID, f"These are your tags. Checked tags are currently active.")
         elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
             await interaction.response.send_message( f"Tag names may only include alphanumeric characters and underscores. Such as example_tag_2", ephemeral=True)
         elif self.bot.user_manager.has_tag(userID, tag_name):
@@ -47,10 +47,18 @@ class Tag(Cog):
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
 
     async def show_tag_menu(self, interaction, userID, description):
-        view = tag_menu(self, interaction, userID)
-        await view.refresh_buttons()
+        taglist = description + "\n"
 
-        await interaction.response.send_message(description, view=view, ephemeral=True)
+        activeTags = self.bot.user_manager.get_tags_active(userID)
+        tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
+
+        for tag in tags:
+            if tag in activeTags:
+                taglist = taglist + "\n[✓] " + tag
+            else:
+                taglist = taglist + "\n        " + tag
+
+        await interaction.response.send_message(taglist, ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self):
@@ -59,60 +67,3 @@ class Tag(Cog):
 
 async def setup(bot) -> None:
     await bot.add_cog(Tag(bot))
-
-class tag_menu(View):
-    def __init__(self, cog, interaction, userID):
-        super().__init__(timeout=10)
-        self.cog = cog
-        self.interaction = interaction
-        self.activeTags = cog.bot.user_manager.get_tags_active(userID)
-        self.tags = sorted(self.activeTags + cog.bot.user_manager.get_tags_inactive(userID), key=str.lower)
-    async def refresh_buttons(self):
-        self.clear_items()
-        i = 0
-        for tag in self.tags:
-            if tag != "":
-                style=discord.ButtonStyle.red
-                if tag in self.activeTags: style=discord.ButtonStyle.green
-
-                button_toggle = Toggle_button(self, self.cog, tag, style, i, tag)
-                button_delete = Delete_button(self, self.cog, "X", style, i, tag)
-
-                self.add_item(button_toggle)
-                self.add_item(button_delete)
-                i += 1
-
-        await self.interaction.response.send_message("test", view=self, ephemeral=True)
-
-        
-    def remove_tag(self, tag_name):
-        if tag_name in self.activeTags: self.activeTags.remove(tag_name)
-        if tag_name in self.tags: self.tags.remove(tag_name)
-
-class Toggle_button(Button):
-    def __init__(self, tag_menu, cog, label, style, row, tag_name):
-        super().__init__(label=label, style=style, row=row)
-        self.tag_menu = tag_menu
-        self.cog = cog
-        self.bot = cog.bot
-        self.tag_name = tag_name
-    async def callback(self, interaction):
-        userID = self.bot.user_manager.get_user_id(interaction.user)
-        await self.tag_menu.refresh_buttons()
-        await self.cog.toggle_tag(interaction, userID, self.tag_name)
-        await interaction.response.defer
-
-class Delete_button(Button):
-    def __init__(self, tag_menu, cog, label, style, row, tag_name):
-        super().__init__(label=label, style=style, row=row)
-        self.tag_menu = tag_menu
-        self.cog = cog
-        self.bot = cog.bot
-        self.tag_name = tag_name
-    async def callback(self, interaction):
-        userID = self.bot.user_manager.get_user_id(interaction.user)
-        self.bot.user_manager.remove_tag(userID, self.tag_name)
-        self.tag_menu.remove_tag(self.tag_name)
-        await self.tag_menu.refresh_buttons()
-        await interaction.response.defer
-        ##await self.cog.show_tag_menu(interaction, userID, f"The tag " + self.tag_name + " has been deleted.")
