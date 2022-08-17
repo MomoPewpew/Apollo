@@ -19,7 +19,7 @@ GUILDS = [discord.Object(id = 1008374239688151111)]
 class Bot(BotBase):
     def __init__(self) -> None:
         self.ready = False
-        self.cogs_ready = Ready_cogs()
+        self.cog_manager = Manage_cogs()
         self.user_manager = Manage_users()
         self.prompt_manager = Manage_prompts()
         self.task_manager = Manage_tasks()
@@ -106,7 +106,7 @@ class Bot(BotBase):
             self.scheduler.start()
 
             print("Awaiting cog setup...")
-            while not self.cogs_ready.all_ready():
+            while not self.cog_manager.all_ready():
                 await asyncio.sleep(0.5)
             
             self.ready = True
@@ -121,7 +121,7 @@ class Bot(BotBase):
         
         await bot.process_commands(message)
 
-class Ready_cogs(object):
+class Manage_cogs(object):
     def __init__(self) -> None:
         for cog in COGS:
             setattr(self, cog, False)

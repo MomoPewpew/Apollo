@@ -86,7 +86,7 @@ class Tag(Cog):
     @Cog.listener()
     async def on_ready(self) -> None:
         if not self.bot.ready:
-            self.bot.cogs_ready.ready_up(COG_NAME)
+            self.bot.cog_manager.ready_up(COG_NAME)
 
 async def setup(bot) -> None:
     await bot.add_cog(Tag(bot))
