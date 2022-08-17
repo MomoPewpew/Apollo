@@ -12,3 +12,15 @@ CREATE TABLE IF NOT EXISTS users (
     promptTagsActive STRING DEFAULT ",",
     promptTagsInactive STRING DEFAULT ","
 );
+
+CREATE TABLE IF NOT EXISTS tasks (
+    taskID INTEGER PRIMARY KEY AUTOINCREMENT,
+    receiveType STRING,
+    userID INTEGER,
+    channelID INTEGER,
+    instruction STRING,
+    server STRING,
+    timeSent STRING,
+    timeReceived STRING,
+    outputURL STRING
+);

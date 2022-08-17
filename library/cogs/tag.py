@@ -1,14 +1,16 @@
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
-from discord.ui import Button, View
 import re
+
+from ..bot import Bot
 
 COG_NAME = "tag"
 
 class Tag(Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
+        super().__init__()
 
     @app_commands.command(
         name=COG_NAME,
@@ -23,7 +25,7 @@ class Tag(Cog):
             tag_name.lower()
         )
 
-    async def function_tag(self, interaction, tag_name):
+    async def function_tag(self, interaction: discord.Interaction, tag_name: str) -> None:
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
@@ -36,7 +38,7 @@ class Tag(Cog):
             self.bot.user_manager.add_tag_active(userID, tag_name)
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been added to your user and turned on.")
 
-    async def toggle_tag(self, interaction, userID, tag_name):
+    async def toggle_tag(self, interaction: discord.Interaction, userID: int, tag_name: str) -> None:
         if self.bot.user_manager.has_tag_active(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
             self.bot.user_manager.add_tag_inactive(userID, tag_name)
@@ -46,7 +48,7 @@ class Tag(Cog):
             self.bot.user_manager.add_tag_active(userID, tag_name)
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
 
-    async def show_tag_menu(self, interaction, userID, description):
+    async def show_tag_menu(self, interaction: discord.Interaction, userID: int, description: str) -> None:
         taglist = description + "\n"
 
         activeTags = self.bot.user_manager.get_tags_active(userID)
@@ -73,7 +75,7 @@ class Tag(Cog):
             tag_name.lower()
         )
     
-    async def function_tagdel(self, interaction, tag_name):
+    async def function_tagdel(self, interaction: discord.Interaction, tag_name: str) -> None:
         userID = self.bot.user_manager.get_user_id(interaction.user)
         if self.bot.user_manager.has_tag(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
@@ -82,7 +84,7 @@ class Tag(Cog):
             await interaction.response.send_message("You don't have a called called " + tag_name + ".", ephemeral=True)
 
     @Cog.listener()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         if not self.bot.ready:
             self.bot.cogs_ready.ready_up(COG_NAME)
 
