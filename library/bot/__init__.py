@@ -18,7 +18,6 @@ GUILDS = [discord.Object(id = 1008374239688151111)]
 
 class Bot(BotBase):
     def __init__(self) -> None:
-        self.PREFIX = PREFIX
         self.ready = False
         self.cogs_ready = Ready_cogs()
         self.user_manager = Manage_users()
