@@ -200,7 +200,12 @@ class Prompt_manager(object):
         pass
 
 class Task_manager(object):
-    def add_task(self, receiveType: str, userID: int, channelID: int, instruction: str) -> None:
-        pass
+    def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str) -> None:
+        db.execute("INSERT OR INTO tasks (receiveType, userID, channelID, instructions) VALUES (?, ?, ?, ?)",
+            receiveType,
+            userID,
+            channelID,
+            instructions
+        )
 
 bot = Bot()

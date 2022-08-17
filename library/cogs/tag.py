@@ -56,9 +56,9 @@ class Tag(Cog):
 
         for tag in tags:
             if tag in activeTags:
-                taglist = taglist + "\n[✓] " + tag
+                taglist += "\n[✓] " + tag
             else:
-                taglist = taglist + "\n        " + tag
+                taglist += "\n        " + tag
 
         await interaction.response.send_message(taglist, ephemeral=True)
     

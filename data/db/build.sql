@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     receiveType STRING,
     userID INTEGER,
     channelID INTEGER,
-    instruction STRING,
+    instructions STRING,
     server STRING,
     timeSent STRING,
     timeReceived STRING,
