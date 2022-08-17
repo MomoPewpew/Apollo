@@ -47,21 +47,8 @@ class Tag(Cog):
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
 
     async def show_tag_menu(self, interaction, userID, description):
-        activeTags = self.bot.user_manager.get_tags_active(userID)
-        tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
-        view = View()
-        i = 0
-        for tag in tags:
-            if tag != "":
-                style=discord.ButtonStyle.red
-                if tag in activeTags: style=discord.ButtonStyle.green
-
-                button_toggle = Toggle_button(self, tag, style, i, tag)
-                button_delete = Delete_button(self, "X", style, i, tag)
-
-                view.add_item(button_toggle)
-                view.add_item(button_delete)
-                i += 1
+        view = tag_menu(self, interaction, userID)
+        await view.refresh_buttons()
 
         await interaction.response.send_message(description, view=view, ephemeral=True)
 
@@ -72,24 +59,60 @@ class Tag(Cog):
 
 async def setup(bot) -> None:
     await bot.add_cog(Tag(bot))
-    
+
+class tag_menu(View):
+    def __init__(self, cog, interaction, userID):
+        super().__init__(timeout=10)
+        self.cog = cog
+        self.interaction = interaction
+        self.activeTags = cog.bot.user_manager.get_tags_active(userID)
+        self.tags = sorted(self.activeTags + cog.bot.user_manager.get_tags_inactive(userID), key=str.lower)
+    async def refresh_buttons(self):
+        self.clear_items()
+        i = 0
+        for tag in self.tags:
+            if tag != "":
+                style=discord.ButtonStyle.red
+                if tag in self.activeTags: style=discord.ButtonStyle.green
+
+                button_toggle = Toggle_button(self, self.cog, tag, style, i, tag)
+                button_delete = Delete_button(self, self.cog, "X", style, i, tag)
+
+                self.add_item(button_toggle)
+                self.add_item(button_delete)
+                i += 1
+
+        await self.interaction.response.send_message("test", view=self, ephemeral=True)
+
+        
+    def remove_tag(self, tag_name):
+        if tag_name in self.activeTags: self.activeTags.remove(tag_name)
+        if tag_name in self.tags: self.tags.remove(tag_name)
+
 class Toggle_button(Button):
-    def __init__(self, cog, label, style, row, tag_name):
+    def __init__(self, tag_menu, cog, label, style, row, tag_name):
         super().__init__(label=label, style=style, row=row)
+        self.tag_menu = tag_menu
         self.cog = cog
         self.bot = cog.bot
         self.tag_name = tag_name
     async def callback(self, interaction):
         userID = self.bot.user_manager.get_user_id(interaction.user)
+        await self.tag_menu.refresh_buttons()
         await self.cog.toggle_tag(interaction, userID, self.tag_name)
+        await interaction.response.defer
 
 class Delete_button(Button):
-    def __init__(self, cog, label, style, row, tag_name):
+    def __init__(self, tag_menu, cog, label, style, row, tag_name):
         super().__init__(label=label, style=style, row=row)
+        self.tag_menu = tag_menu
         self.cog = cog
         self.bot = cog.bot
         self.tag_name = tag_name
     async def callback(self, interaction):
         userID = self.bot.user_manager.get_user_id(interaction.user)
         self.bot.user_manager.remove_tag(userID, self.tag_name)
-        await self.cog.show_tag_menu(interaction, userID, f"The tag " + self.tag_name + " has been deleted.")
+        self.tag_menu.remove_tag(self.tag_name)
+        await self.tag_menu.refresh_buttons()
+        await interaction.response.defer
+        ##await self.cog.show_tag_menu(interaction, userID, f"The tag " + self.tag_name + " has been deleted.")
