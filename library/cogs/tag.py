@@ -59,6 +59,27 @@ class Tag(Cog):
                 taglist = taglist + "\n        " + tag
 
         await interaction.response.send_message(taglist, ephemeral=True)
+    
+    @app_commands.command(
+        name="tagdel",
+        description = "Delete a tag from your user."
+    )
+    async def command_tagdel(
+        self, interaction: discord.Interaction,
+        tag_name: str
+    ) -> None:
+        await self.function_tagdel(
+            interaction,
+            tag_name.lower()
+        )
+    
+    async def function_tagdel(self, interaction, tag_name):
+        userID = self.bot.user_manager.get_user_id(interaction.user)
+        if self.bot.user_manager.has_tag(userID, tag_name):
+            self.bot.user_manager.remove_tag(userID, tag_name)
+            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been deleted from your user.")
+        else:
+            await interaction.response.send_message("You don't have a called called " + tag_name + ".", ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self):
