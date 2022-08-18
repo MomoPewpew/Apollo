@@ -28,32 +28,40 @@ class User_manager(object):
             return False
 
     def get_tags_active(self, userID: int) -> list[str]:
-        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
+        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?",
+            userID
+        )
         tagsArray = tags[0][1:-1].split(",")
         return tagsArray
 
     def get_tags_inactive(self, userID: int) -> list[str]:
-        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
+        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?",
+            userID
+        )
         tagsArray = tags[0][1:-1].split(",")
         return tagsArray
     
     def add_tag_active(self, userID: int, tag_name: str):
         db.execute("UPDATE users SET promptTagsActive = promptTagsActive || ? WHERE UserID = ?",
             tag_name + ",",
-            userID)
+            userID
+        )
     
     def add_tag_inactive(self, userID: int, tag_name: str):
         db.execute("UPDATE users SET promptTagsInactive = promptTagsInactive || ? WHERE UserID = ?",
             tag_name + ",",
-            userID)
+            userID
+        )
     
     def remove_tag(self, userID: int, tag_name: str):
         db.execute("UPDATE users SET promptTagsActive = replace(promptTagsActive, ?, ',') WHERE promptTagsActive LIKE ? AND UserID = ?",
             "," + tag_name + ",",
             "%," + tag_name + ",%",
-            userID)
+            userID
+        )
         
         db.execute("UPDATE users SET promptTagsInactive = replace(promptTagsInactive, ?, ',') WHERE promptTagsInactive LIKE ? AND UserID = ?",
             "," + tag_name + ",",
             "%," + tag_name + ",%",
-            userID)
+            userID
+        )
