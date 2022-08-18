@@ -13,8 +13,9 @@ class Task_manager(object):
             estimatedTime
         )
 
-        if not self.bot.working:
+        if not self.bot.processing:
             self.boot_gpu_server
+            self.bot.processing = True
     
     def boot_gpu_server():
         pass

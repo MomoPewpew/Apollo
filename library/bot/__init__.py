@@ -20,7 +20,7 @@ GUILDS = [discord.Object(id = 1008374239688151111)]
 class Bot(BotBase):
     def __init__(self) -> None:
         self.ready = False
-        self.working = False
+        self.processing = False
         self.cog_manager = cog_manager.Cog_manager(COGS)
         self.user_manager = user_manager.User_manager()
         self.prompt_manager = prompt_manager.Prompt_manager()
