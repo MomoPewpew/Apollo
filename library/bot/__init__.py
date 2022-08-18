@@ -6,9 +6,10 @@ from glob import glob
 
 import discord
 from discord import Intents
-from discord.ext.commands import Bot as BotBase, CommandNotFound, Cog, Context, errors
+from discord.ext.commands import Bot as BotBase, CommandNotFound, Context, errors
 
 from ..db import db
+from ..managers import cog_manager, prompt_manager, task_manager, user_manager
 
 PREFIX = "/"
 APP_ID = 1008367927533244547
@@ -19,10 +20,11 @@ GUILDS = [discord.Object(id = 1008374239688151111)]
 class Bot(BotBase):
     def __init__(self) -> None:
         self.ready = False
-        self.cog_manager = Cog_manager()
-        self.user_manager = User_manager()
-        self.prompt_manager = Prompt_manager()
-        self.task_manager = Task_manager()
+        self.working = False
+        self.cog_manager = cog_manager.Cog_manager(COGS)
+        self.user_manager = user_manager.User_manager()
+        self.prompt_manager = prompt_manager.Prompt_manager()
+        self.task_manager = task_manager.Task_manager(self)
 
         intents = Intents.default()
         intents.members = True
@@ -122,90 +124,5 @@ class Bot(BotBase):
         else:
             raise exception
         return await super().on_command_error(context, exception)
-
-class Cog_manager(object):
-    def __init__(self) -> None:
-        for cog in COGS:
-            setattr(self, cog, False)
-
-    def ready_up(self, cog: Cog) -> None:
-        setattr(self, cog, True)
-        print(f"  {cog} cog ready")
-
-    def all_ready(self) -> Boolean:
-        return all([getattr(self, cog) for cog in COGS])
-
-class User_manager(object):
-    ##This is handled via a separate function in case we want to hardcode certain users to other id's (such as rawb having two discord accounts, or a user wanting a separate database entry for the same discord user for some reason)
-    ##This is also a good place to ensure that the user even has an entry to begin with
-    def get_user_id(self, user: int) -> int:
-        userID = user.id
-
-        db.execute("INSERT OR IGNORE INTO users (userID) VALUES (?)",
-            userID)
-
-        return userID
-    
-    def has_tag(self, userID: int, tag_name: str) -> Boolean:
-        return self.has_tag_active(userID, tag_name) or self.has_tag_inactive(userID, tag_name)
-
-    def has_tag_active(self, userID: int, tag_name: str) -> Boolean:
-        if tag_name in self.get_tags_active(userID):
-            return True
-        else:
-            return False
-    
-    def has_tag_inactive(self, userID: int, tag_name: str) -> Boolean:
-        if tag_name in self.get_tags_inactive(userID):
-            return True
-        else:
-            return False
-
-    def get_tags_active(self, userID: int) -> list[str]:
-        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?", userID)
-        tagsArray = tags[0][1:-1].split(",")
-        return tagsArray
-
-    def get_tags_inactive(self, userID: int) -> list[str]:
-        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?", userID)
-        tagsArray = tags[0][1:-1].split(",")
-        return tagsArray
-    
-    def add_tag_active(self, userID: int, tag_name: str):
-        db.execute("UPDATE users SET promptTagsActive = promptTagsActive || ? WHERE UserID = ?",
-            tag_name + ",",
-            userID)
-    
-    def add_tag_inactive(self, userID: int, tag_name: str):
-        db.execute("UPDATE users SET promptTagsInactive = promptTagsInactive || ? WHERE UserID = ?",
-            tag_name + ",",
-            userID)
-    
-    def remove_tag(self, userID: int, tag_name: str):
-        db.execute("UPDATE users SET promptTagsActive = replace(promptTagsActive, ?, ',') WHERE promptTagsActive LIKE ? AND UserID = ?",
-            "," + tag_name + ",",
-            "%," + tag_name + ",%",
-            userID)
-        
-        db.execute("UPDATE users SET promptTagsInactive = replace(promptTagsInactive, ?, ',') WHERE promptTagsInactive LIKE ? AND UserID = ?",
-            "," + tag_name + ",",
-            "%," + tag_name + ",%",
-            userID)
-
-class Prompt_manager(object):
-    def add_prompt(self, promptType: str, promptString: str, userID: int, promptTags: str) -> None:
-        pass
-
-    def get_prompts(self, userID: int, tags: List[str]) -> List[str]:
-        pass
-
-class Task_manager(object):
-    def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str) -> None:
-        db.execute("INSERT OR INTO tasks (receiveType, userID, channelID, instructions) VALUES (?, ?, ?, ?)",
-            receiveType,
-            userID,
-            channelID,
-            instructions
-        )
 
 bot = Bot()
