@@ -11,7 +11,6 @@ from discord.ext.commands import Bot as BotBase, CommandNotFound, Context, error
 from ..db import db
 from ..managers import cog_manager, prompt_manager, task_manager, user_manager
 
-PREFIX = "/"
 APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
@@ -30,7 +29,7 @@ class Bot(BotBase):
         intents.members = True
 
         super().__init__(
-            command_prefix = PREFIX,
+            command_prefix = "/",
             application_id = APP_ID,
             owner_ids = OWNER_IDS,
             intents=intents
