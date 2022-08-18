@@ -1,14 +1,11 @@
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
-import re
-
-from ..bot import Bot
 
 COG_NAME = "tag"
 
 class Tag(Cog):
-    def __init__(self, bot: Bot) -> None:
+    def __init__(self, bot) -> None:
         self.bot = bot
         super().__init__()
 

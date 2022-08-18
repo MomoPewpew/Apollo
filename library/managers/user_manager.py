@@ -27,18 +27,20 @@ class User_manager(object):
         else:
             return False
 
-    def get_tags_active(self, userID: int) -> list[str]:
+    def get_tags_active_csv(self, userID: int) -> str:
         tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?",
             userID
-        )
-        tagsArray = tags[0][1:-1].split(",")
-        return tagsArray
+        )[0]
+        return tags
+
+    def get_tags_active(self, userID: int) -> list[str]:
+        return self.get_tags_active_csv[1:-1].split(",")
 
     def get_tags_inactive(self, userID: int) -> list[str]:
         tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?",
             userID
-        )
-        tagsArray = tags[0][1:-1].split(",")
+        )[0]
+        tagsArray = tags[1:-1].split(",")
         return tagsArray
     
     def add_tag_active(self, userID: int, tag_name: str):

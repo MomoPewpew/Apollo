@@ -22,7 +22,7 @@ class Bot(BotBase):
         self.processing = False
         self.cog_manager = cog_manager.Cog_manager(COGS)
         self.user_manager = user_manager.User_manager()
-        self.prompt_manager = prompt_manager.Prompt_manager()
+        self.prompt_manager = prompt_manager.Prompt_manager(self)
         self.task_manager = task_manager.Task_manager(self)
 
         intents = Intents.default()
