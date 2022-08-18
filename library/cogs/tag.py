@@ -11,7 +11,7 @@ class Tag(Cog):
 
     @app_commands.command(
         name=COG_NAME,
-        description = "Add or toggle tags on yourself to keep track of what you are currently working on. If Apollo knows what you are working on, it will be able to learn what art styles you want for what project."
+        description = "Add or toggle tags on yourself to help Apollo learn what styles you like for your projects."
     )
     async def command_tag(
         self, interaction: discord.Interaction,
