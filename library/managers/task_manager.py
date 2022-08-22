@@ -1,8 +1,9 @@
 from ..db import db
 from datetime import datetime
+from .. import bot
 
 class Task_manager(object):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: bot) -> None:
         self.bot = bot
 
     def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int) -> None:

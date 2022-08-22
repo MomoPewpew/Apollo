@@ -1,7 +1,8 @@
 from ..db import db
+from .. import bot
 
 class Prompt_manager(object):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot: bot) -> None:
         self.bot = bot
 
     def add_prompt(self, promptType: str, promptString: str, userID: int) -> None:

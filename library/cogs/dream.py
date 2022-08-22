@@ -2,11 +2,12 @@ from code import interact
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
+from .. import bot
 
 COG_NAME = "dream"
 
 class Dream(Cog):
-    def __init__(self, bot) -> None:
+    def __init__(self, bot:bot) -> None:
         self.bot = bot
         super().__init__()
 
