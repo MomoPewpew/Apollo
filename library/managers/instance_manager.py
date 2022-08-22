@@ -7,20 +7,16 @@ from botocore.exceptions import ClientError
 class Instance_manager(object):
     ec2 = boto3.client('ec2')
 
+    def __init__(self) -> None:
+        credentials = self.read_credentials()
+        self.Mem.instance_id = credentials[0]
+        print()
+
     class Mem:
-        """
-        Global Class Pattern:
-        Declare globals here.
-        """
         instance_id = ""
 
 
     def read_credentials(self):
-        """
-        Read the user's credential file 'instance_id.txt'.
-        This file should be located in the user's home folder.
-        :return: The EC2 instance id.
-        """
         home_dir = os.path.expanduser('~')
         credentials_file_path = os.path.join(home_dir, "instance_id.txt")
         try:
@@ -31,11 +27,6 @@ class Instance_manager(object):
             print("Error Message: {0}".format(e))
 
     def start_ec2(self):
-        """
-        This code is from Amazon's EC2 example.
-        Do a dryrun first to verify permissions.
-        Try to start the EC2 instance.
-        """
         print("------------------------------")
         print("Try to start the EC2 instance.")
         print("------------------------------")
@@ -58,11 +49,6 @@ class Instance_manager(object):
 
 
     def stop_ec2(self):
-        """
-        This code is from Amazon's EC2 example.
-        Do a dryrun first to verify permissions.
-        Try to stop the EC2 instance.
-        """
         print("------------------------------")
         print("Try to stop the EC2 instance.")
         print("------------------------------")
@@ -80,12 +66,27 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
+    ##This has not been tested
+    def hibernate_ec2(self):
+        print("------------------------------")
+        print("Try to hibernate the EC2 instance.")
+        print("------------------------------")
+
+        try:
+            self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], Hibernate=True, DryRun=True)
+        except ClientError as e:
+            if 'DryRunOperation' not in str(e):
+                raise
+
+        # Dry run succeeded, call stop_instances without dryrun
+        try:
+            response = self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], Hibernate=True, DryRun=False)
+            print(response)
+        except ClientError as e:
+            print(e)
+
 
     def fetch_public_ip(self):
-        """
-        Fetch the public IP that has been assigned to the EC2 instance.
-        :return: Print the public IP to the console.
-        """
         print()
         print("Waiting for public IPv4 address...")
         print()
@@ -98,15 +99,3 @@ class Instance_manager(object):
         ip_address = instances_array["PublicIpAddress"]
         print()
         print("Public IPv4 address of the EC2 instance: {0}".format(ip_address))
-
-
-    def main(self):
-        """
-        The entry point of this program.
-        """
-        credentials = self.read_credentials()
-        self.Mem.instance_id = credentials[0]
-        print()
-
-    if __name__ == '__main__':
-        main()
