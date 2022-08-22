@@ -81,7 +81,7 @@ class Tag(Cog):
             self.bot.user_manager.remove_tag(userID, tag_name)
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been deleted from your user.")
         else:
-            await interaction.response.send_message("You don't have a called called " + tag_name + ".", ephemeral=True)
+            await interaction.response.send_message("You don't have a tag called " + tag_name + ".", ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self) -> None:
