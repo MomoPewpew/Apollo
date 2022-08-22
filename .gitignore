@@ -154,3 +154,4 @@ token.txt
 library/bot/token.0
 data/db/database.db
 data/db/database.db-journal
+library/managers/instance_id.txt

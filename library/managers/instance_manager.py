@@ -17,8 +17,7 @@ class Instance_manager(object):
 
 
     def read_credentials(self):
-        home_dir = os.path.expanduser('~')
-        credentials_file_path = os.path.join(home_dir, "instance_id.txt")
+        credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_id.txt")
         try:
             with open(credentials_file_path, 'r') as f:
                 credentials = [line.strip() for line in f]
