@@ -1,4 +1,3 @@
-import sys
 import os
 import time
 import boto3.ec2
