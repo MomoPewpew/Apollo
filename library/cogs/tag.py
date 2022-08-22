@@ -2,6 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 
+import re
+
 COG_NAME = "tag"
 
 class Tag(Cog):
@@ -47,15 +49,16 @@ class Tag(Cog):
 
     async def show_tag_menu(self, interaction: discord.Interaction, userID: int, description: str) -> None:
         taglist = description + "\n"
-
+        
         activeTags = self.bot.user_manager.get_tags_active(userID)
         tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
         for tag in tags:
-            if tag in activeTags:
-                taglist += "\n[✓] " + tag
-            else:
-                taglist += "\n        " + tag
+            if tag != "":
+                if tag in activeTags:
+                    taglist += "\n[✓] " + tag
+                else:
+                    taglist += "\n        " + tag
 
         await interaction.response.send_message(taglist, ephemeral=True)
     
