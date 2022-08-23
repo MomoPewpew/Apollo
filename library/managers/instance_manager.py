@@ -3,6 +3,7 @@ import os
 from re import I
 import time
 from unittest.util import strclass
+import random
 import boto3.ec2
 from botocore.exceptions import ClientError
 
@@ -10,6 +11,7 @@ class Instance_manager(object):
     ec2 = boto3.client('ec2')
     ssm = boto3.client('ssm')
     instance_id = [""]
+    active_instances = []
 
     def __init__(self) -> None:
         self.instance_id = self.read_credentials()
@@ -17,6 +19,20 @@ class Instance_manager(object):
 
     def get_instance_id(self, index: int) -> str:
         return self.instance_id[index]
+    
+    def get_random_instance(self) -> int:
+        i = -1
+        if (self.get_total_instances > self.get_total_active):
+            while i in self.active_instances or i == -1:
+                i = random.randint(0, self.get_total_instances)
+
+        return i
+    
+    def get_total_active(self) -> int:
+        return len(self.active_instances)
+
+    def get_total_instances(self) -> int:
+        return len(self.instance_id)
 
     def read_credentials(self) -> list[str]:
         credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_id.txt")
@@ -44,6 +60,7 @@ class Instance_manager(object):
             print("Start instance without dry run...")
             response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
+            self.active_instances.add(index)
             self.fetch_public_ip()
         except ClientError as e:
             print(e)
@@ -62,6 +79,7 @@ class Instance_manager(object):
         # Dry run succeeded, call stop_instances without dryrun
         try:
             response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
+            self.active_instances.remove(index)
             print(response)
         except ClientError as e:
             print(e)

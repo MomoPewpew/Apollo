@@ -20,9 +20,6 @@ class Task_manager(object):
             instructions,
             estimatedTime
         )
-    
-    def get_random_server() -> str:
-        return ##TODO: Write this. While we only have 1 GPU server this can just return that server.
 
     def send_first_task(self, server: str) -> None:
         taskID, instructions = db.record("SELECT taskID, instructions FROM tasks WHERE timeReceived = NULL AND taskID=(SELECT MIN(taskID) FROM tasks)")
