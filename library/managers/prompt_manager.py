@@ -1,12 +1,13 @@
 from ..db import db
 from .. import bot
-from discord.ui import Button, View
+from discord.ui import Button
+import discord
 
 class Prompt_manager(object):
     def __init__(self, bot: bot) -> None:
         self.bot = bot
 
-    async def add_prompt_with_revoke_button(self, interaction, promptType: str, promptString: str, userID: int) -> None:
+    async def add_prompt_with_revoke_button(self, interaction: discord.Interaction, promptType: str, promptString: str, userID: int) -> None:
         promptID = db.record("SELECT MAX(promptID) FROM prompts") + 1
         promptTags = self.bot.user_manager.get_tags_active_csv(userID)
 
@@ -46,11 +47,11 @@ class Prompt_manager(object):
         )
 
 class Delete_button(Button):
-    def __init__(self, label, style, row, prompt_manager, promptID):
-        super().__init__(label=label, style=style, row=row)
+    def __init__(self, prompt_manager: Prompt_manager, promptID: int):
+        super().__init__(label="Delete", style=discord.ButtonStyle.red)
         self.prompt_manager = prompt_manager
         self.promptID = promptID
-    async def callback(self, interaction):
+    async def callback(self, interaction: discord.Interaction) -> Any:
         self.prompt_manager.remove_prompt(self.promptID)
         self.disabled = True
         interaction.response.send_message(content="This prompt has been deleted.")
