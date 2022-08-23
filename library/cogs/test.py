@@ -26,6 +26,14 @@ class Test(Cog):
         self, interaction: discord.Interaction
     ) -> None:
         self.bot.instance_manager.hibernate_ec2()
+    
+    @app_commands.command(
+        name="testcommand"
+    )
+    async def command_testcommand(
+        self, interaction: discord.Interaction
+    ) -> None:
+        self.bot.instance_manager.hibernate_ec2()
 
     @Cog.listener()
     async def on_ready(self) -> None:
