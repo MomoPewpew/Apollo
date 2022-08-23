@@ -13,7 +13,7 @@ class Instance_manager(object):
         print()
 
     def get_instance_id(self, index: int) -> str:
-        return self.Mem.instance_id[index]
+        return self.instance_id[index]
 
     def read_credentials(self) -> list[str]:
         credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_id.txt")
