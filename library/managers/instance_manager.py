@@ -99,8 +99,13 @@ class Instance_manager(object):
         print("Public IPv4 address of the EC2 instance: {0}".format(ip_address))
 
     def send_command(self, index: int, command: str) -> str:
-        instance_ids = [self.get_instance_id(index)]
         commands = [command]
+
+        resp = self.send_commands(index, commands)
+        return resp
+
+    def send_commands(self, index: int, commands: str) -> str:
+        instance_ids = [self.get_instance_id(index)]
 
         resp = self.ssm.send_command(
             DocumentName="AWS-RunShellScript",
