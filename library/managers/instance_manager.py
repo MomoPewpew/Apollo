@@ -104,7 +104,7 @@ class Instance_manager(object):
         resp = self.send_commands(index, commands)
         return resp
 
-    def send_commands(self, index: int, commands: str) -> str:
+    def send_commands(self, index: int, commands: list[str]) -> str:
         instance_ids = [self.get_instance_id(index)]
 
         resp = self.ssm.send_command(
