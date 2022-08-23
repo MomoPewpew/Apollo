@@ -1,11 +1,14 @@
+from imaplib import Commands
 import os
 from re import I
 import time
+from unittest.util import strclass
 import boto3.ec2
 from botocore.exceptions import ClientError
 
 class Instance_manager(object):
     ec2 = boto3.client('ec2')
+    ssm = boto3.client('ssm')
     instance_id = [""]
 
     def __init__(self) -> None:
@@ -94,3 +97,14 @@ class Instance_manager(object):
         ip_address = instances_array["PublicIpAddress"]
         print()
         print("Public IPv4 address of the EC2 instance: {0}".format(ip_address))
+
+    def send_command(self, index: int, command: str) -> str:
+        instance_ids = [self.get_instance_id(index)]
+        commands = [command]
+
+        resp = self.ssm.send_command(
+            DocumentName="AWS-RunShellScript",
+            Parameters={'commands': commands},
+            InstanceIds=instance_ids,
+        )
+        return resp
