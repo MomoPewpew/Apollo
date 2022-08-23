@@ -1,21 +1,21 @@
 import os
+from re import I
 import time
 import boto3.ec2
 from botocore.exceptions import ClientError
 
 class Instance_manager(object):
     ec2 = boto3.client('ec2')
+    instance_id = [""]
 
     def __init__(self) -> None:
-        credentials = self.read_credentials()
-        self.Mem.instance_id = credentials[0]
+        self.instance_id = self.read_credentials()
         print()
 
-    class Mem:
-        instance_id = ""
+    def get_instance_id(self, index: int) -> str:
+        return self.Mem.instance_id[index]
 
-
-    def read_credentials(self):
+    def read_credentials(self) -> list[str]:
         credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_id.txt")
         try:
             with open(credentials_file_path, 'r') as f:
@@ -24,14 +24,14 @@ class Instance_manager(object):
         except FileNotFoundError as e:
             print("Error Message: {0}".format(e))
 
-    def start_ec2(self):
+    def start_ec2(self, index: int) -> None:
         print("------------------------------")
         print("Try to start the EC2 instance.")
         print("------------------------------")
 
         try:
             print("Start dry run...")
-            self.ec2.start_instances(InstanceIds=[self.Mem.instance_id], DryRun=True)
+            self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=True)
         except ClientError as e:
             if 'DryRunOperation' not in str(e):
                 raise
@@ -39,52 +39,49 @@ class Instance_manager(object):
         # Dry run succeeded, run start_instances without dryrun
         try:
             print("Start instance without dry run...")
-            response = self.ec2.start_instances(InstanceIds=[self.Mem.instance_id], DryRun=False)
+            response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
             self.fetch_public_ip()
         except ClientError as e:
             print(e)
 
-
-    def stop_ec2(self):
+    def stop_ec2(self, index: int) -> None:
         print("------------------------------")
         print("Try to stop the EC2 instance.")
         print("------------------------------")
 
         try:
-            self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], DryRun=True)
+            self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], DryRun=True)
         except ClientError as e:
             if 'DryRunOperation' not in str(e):
                 raise
 
         # Dry run succeeded, call stop_instances without dryrun
         try:
-            response = self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], DryRun=False)
+            response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
         except ClientError as e:
             print(e)
 
-    ##This has not been tested
-    def hibernate_ec2(self):
+    def hibernate_ec2(self, index: int) -> None:
         print("------------------------------")
         print("Try to hibernate the EC2 instance.")
         print("------------------------------")
 
         try:
-            self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], Hibernate=True, DryRun=True)
+            self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], Hibernate=True, DryRun=True)
         except ClientError as e:
             if 'DryRunOperation' not in str(e):
                 raise
 
         # Dry run succeeded, call stop_instances without dryrun
         try:
-            response = self.ec2.stop_instances(InstanceIds=[self.Mem.instance_id], Hibernate=True, DryRun=False)
+            response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], Hibernate=True, DryRun=False)
             print(response)
         except ClientError as e:
             print(e)
 
-
-    def fetch_public_ip(self):
+    def fetch_public_ip(self) -> None:
         print()
         print("Waiting for public IPv4 address...")
         print()
