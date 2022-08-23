@@ -25,7 +25,7 @@ class Test(Cog):
     async def command_instanceoff(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.hibernate_ec2()
+        self.bot.instance_manager.stop_ec2()
     
     @app_commands.command(
         name="testcommand"
