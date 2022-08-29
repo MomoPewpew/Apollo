@@ -1,3 +1,4 @@
+from typing import Any
 from ..db import db
 from .. import bot
 from discord.ui import Button

@@ -2,14 +2,13 @@ from imaplib import Commands
 import os
 from re import I
 import time
-from unittest.util import strclass
 import random
-import boto3.ec2
+import boto3
 from botocore.exceptions import ClientError
 
 class Instance_manager(object):
-    ec2 = boto3.client('ec2')
-    ssm = boto3.client('ssm')
+    ec2 = boto3.client('ec2',region_name='eu-west-2')
+    ssm = boto3.client('ssm',region_name='eu-west-2')
     instance_id = [""]
     active_instances = []
 
@@ -84,6 +83,7 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
+    ##This function should work in theory, but our EC2 g3 instance does not support hibernation so it is never used
     def hibernate_ec2(self, index: int) -> None:
         print("------------------------------")
         print("Try to hibernate the EC2 instance.")
@@ -122,12 +122,17 @@ class Instance_manager(object):
         resp = self.send_commands(index, commands)
         return resp
 
-    def send_commands(self, index: int, commands: list[str]) -> str:
-        instance_ids = [self.get_instance_id(index)]
+    def send_commands(self, index: int, commands: list[str]) -> None:
+        instance_id = self.get_instance_id(index)
 
-        resp = self.ssm.send_command(
+        response = self.ssm.send_command(
+            InstanceIds=[instance_id],
             DocumentName="AWS-RunShellScript",
-            Parameters={'commands': commands},
-            InstanceIds=instance_ids,
-        )
-        return resp
+            Parameters={'commands': commands}, )
+
+        command_id = response['Command']['CommandId']
+        output = self.ssm.get_command_invocation(
+            CommandId=command_id,
+            InstanceId=instance_id,
+            )
+        print("Output: " + output)

@@ -17,7 +17,7 @@ class Test(Cog):
     async def command_instanceon(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.start_ec2()
+        self.bot.instance_manager.start_ec2(0)
 
     @app_commands.command(
         name="instanceoff"
@@ -25,7 +25,7 @@ class Test(Cog):
     async def command_instanceoff(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.stop_ec2()
+        self.bot.instance_manager.stop_ec2(0)
     
     @app_commands.command(
         name="testcommand"
@@ -33,7 +33,7 @@ class Test(Cog):
     async def command_testcommand(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.hibernate_ec2()
+        self.bot.instance_manager.send_command(0, "python3 Daedalus/daedalus.py --function=arcanegan")
 
     @Cog.listener()
     async def on_ready(self) -> None:
