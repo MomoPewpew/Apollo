@@ -33,7 +33,7 @@ class Test(Cog):
     async def command_testcommand(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.send_command(0, "python3 Daedalus/daedalus.py --function=arcanegan")
+        self.bot.instance_manager.send_command(0, "python3 /home/ubuntu/Daedalus/daedalus.py --function=arcanegan")
 
     @Cog.listener()
     async def on_ready(self) -> None:

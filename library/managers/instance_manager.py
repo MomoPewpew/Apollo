@@ -1,10 +1,9 @@
-from imaplib import Commands
 import os
 from re import I
 import time
 import random
 import boto3
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, WaiterError
 
 class Instance_manager(object):
     ec2 = boto3.client('ec2',region_name='eu-west-2')
@@ -124,15 +123,33 @@ class Instance_manager(object):
 
     def send_commands(self, index: int, commands: list[str]) -> None:
         instance_id = self.get_instance_id(index)
+        
+        print("Sending commands:")
+        for cmd in commands:
+            print(cmd)
+        print("To server " + str(index))
 
         response = self.ssm.send_command(
             InstanceIds=[instance_id],
             DocumentName="AWS-RunShellScript",
-            Parameters={'commands': commands}, )
+            Parameters={
+                'commands': commands
+            }
+        )
+        time.sleep(2)
 
         command_id = response['Command']['CommandId']
-        output = self.ssm.get_command_invocation(
-            CommandId=command_id,
-            InstanceId=instance_id,
+
+        waiter = self.ssm.get_waiter("command_executed")
+        try:
+            waiter.wait(
+                CommandId=command_id,
+                InstanceId=instance_id,
             )
-        print("Output: " + output)
+        except WaiterError as ex:
+            print(ex)
+            return
+
+        output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
+        
+        print("Output: " + output['StandardOutputContent'])
