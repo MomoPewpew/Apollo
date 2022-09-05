@@ -17,12 +17,18 @@ class Instance_manager(object):
 
     def get_instance_id(self, index: int) -> str:
         return self.instance_id[index]
+
+    def get_instance_index(self, id: str) -> int:
+        return self.instance_id.index(id)
+    
+    def is_instance_listed(self, id: str) -> bool:
+        return id in self.instance_id
     
     def get_random_instance(self) -> int:
         i = -1
-        if (self.get_total_instances > self.get_total_active):
+        if (self.get_total_instances() > self.get_total_active()):
             while i in self.active_instances or i == -1:
-                i = random.randint(0, self.get_total_instances)
+                i = random.randint(0, self.get_total_instances() - 1)
 
         return i
     
@@ -105,7 +111,7 @@ class Instance_manager(object):
         print()
         print("Waiting for public IPv4 address...")
         print()
-        time.sleep(16)
+        time.sleep(20)
         response = self.ec2.describe_instances()
         first_array = response["Reservations"]
         first_index = first_array[0]

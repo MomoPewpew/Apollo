@@ -1,5 +1,4 @@
 from ..db import db
-from xmlrpc.client import Boolean
 
 class User_manager(object):
     ##This is handled via a separate function in case we want to hardcode certain users to other id's (such as rawb having two discord accounts, or a user wanting a separate database entry for the same discord user for some reason)
@@ -12,16 +11,16 @@ class User_manager(object):
 
         return userID
     
-    def has_tag(self, userID: int, tag_name: str) -> Boolean:
+    def has_tag(self, userID: int, tag_name: str) -> bool:
         return self.has_tag_active(userID, tag_name) or self.has_tag_inactive(userID, tag_name)
 
-    def has_tag_active(self, userID: int, tag_name: str) -> Boolean:
+    def has_tag_active(self, userID: int, tag_name: str) -> bool:
         if tag_name in self.get_tags_active(userID):
             return True
         else:
             return False
     
-    def has_tag_inactive(self, userID: int, tag_name: str) -> Boolean:
+    def has_tag_inactive(self, userID: int, tag_name: str) -> bool:
         if tag_name in self.get_tags_inactive(userID):
             return True
         else:

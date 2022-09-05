@@ -1,7 +1,5 @@
-from typing import Any
 from ..db import db
 from .. import bot
-from discord.ui import Button
 import discord
 
 class Prompt_manager(object):
@@ -22,7 +20,7 @@ class Prompt_manager(object):
         
         returnString += "\nIf you would like to delete this prompt from your history then press the delete button."
 
-        button = Button(self, promptID)
+        button = Delete_button(self, promptID)
 
         await interaction.response.send_message(content=returnString, button=button, ephemeral = True)
 
@@ -46,13 +44,3 @@ class Prompt_manager(object):
             userID,
             "%," + tag_name + ",%",
         )
-
-class Delete_button(Button):
-    def __init__(self, prompt_manager: Prompt_manager, promptID: int):
-        super().__init__(label="Delete", style=discord.ButtonStyle.red)
-        self.prompt_manager = prompt_manager
-        self.promptID = promptID
-    async def callback(self, interaction: discord.Interaction) -> Any:
-        self.prompt_manager.remove_prompt(self.promptID)
-        self.disabled = True
-        interaction.response.send_message(content="This prompt has been deleted.")

@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS prompts (
 CREATE TABLE IF NOT EXISTS users (
     userID INTEGER PRIMARY KEY,
     promptTagsActive STRING DEFAULT ",",
-    promptTagsInactive STRING DEFAULT ","
+    promptTagsInactive STRING DEFAULT ",",
+    privacy INTEGER DEFAULT 0,
+    tokens INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS tasks (
