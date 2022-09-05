@@ -64,7 +64,7 @@ class Instance_manager(object):
             print("Start instance without dry run...")
             response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
-            self.active_instances.add(index)
+            self.active_instances.append(index)
             self.fetch_public_ip()
         except ClientError as e:
             print(e)

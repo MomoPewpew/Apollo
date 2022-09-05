@@ -98,7 +98,7 @@ class Task_manager(object):
         queue_estimate = -1
 
         queue_estimates = self.get_queue_estimates()
-
+        
         for instance in self.bot.instance_manager.active_instances:
             if queue_estimate < queue_estimates[instance] or queue_estimate == -1:
                 queue_estimate = queue_estimates[instance]
@@ -120,27 +120,28 @@ class Task_manager(object):
         for append in range(self.bot.instance_manager.get_total_instances()):
             queueTimes.append(0)
 
-        for i in range(len(servers)):
-            id = servers[i]
-            if id != None:
-                if self.bot.instance_manager.is_instance_listed(id):
-                    index = self.bot.instance_manager.get_instance_index(id)
+        if servers != None:
+            for i in range(len(servers)):
+                id = servers[i]
+                if id != None:
+                    if self.bot.instance_manager.is_instance_listed(id):
+                        index = self.bot.instance_manager.get_instance_index(id)
 
-                    queueTimes[index] += estimatedTimes[i] - max((datetime.utcnow() - timeSents[i]), 2)
-            else:
-                estimatedTimesRemaining.append(estimatedTimes[i])
+                        queueTimes[index] += estimatedTimes[i] - max((datetime.utcnow() - timeSents[i]), 2)
+                else:
+                    estimatedTimesRemaining.append(estimatedTimes[i])
 
-        i = 0
-        active_instances = self.bot.instance_manager.active_instances
-        for taskTime in estimatedTimesRemaining:
-            timeTemp = -1
-            for index in active_instances:
-                if queueTimes[index] == 0: queueTimes[index] = 0
-                if queueTimes[index] < timeTemp or timeTemp == -1:
-                    timeTemp = queueTimes[index]
-                    i = index
-            
-            queueTimes[i] += taskTime
+            i = 0
+            active_instances = self.bot.instance_manager.active_instances
+            for taskTime in estimatedTimesRemaining:
+                timeTemp = -1
+                for index in active_instances:
+                    if queueTimes[index] == 0: queueTimes[index] = 0
+                    if queueTimes[index] < timeTemp or timeTemp == -1:
+                        timeTemp = queueTimes[index]
+                        i = index
+                
+                queueTimes[i] += taskTime
 
         return queueTimes
 
