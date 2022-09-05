@@ -47,7 +47,6 @@ class Task_manager(object):
 
     def start(self) -> None:
         index = self.bot.instance_manager.get_random_instance()
-        print(index)
         if index >= 0:
             self.bot.instance_manager.start_ec2(index)
             self.bot.processing = True
