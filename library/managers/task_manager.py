@@ -114,10 +114,10 @@ class Task_manager(object):
         servers = db.record("SELECT server FROM tasks WHERE timeReceived is NULL")
         timeSents = db.record("SELECT timeSent FROM tasks WHERE timeReceived is NULL")
 
-        queueTimes = [0]
+        queueTimes = []
         estimatedTimesRemaining = []
 
-        for append in range(self.bot.instance_manager.get_total_instances()):
+        for append in range(self.bot.instance_manager.get_total_instances() + 1):
             queueTimes.append(0)
 
         if servers != None:
