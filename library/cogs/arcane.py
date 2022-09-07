@@ -31,7 +31,7 @@ class Arcane(Cog):
 
         instructions = f"python3 /home/ubuntu/Daedalus/daedalus.py --function=arcanegan --sourceURL={url}"
 
-        await self.bot.task_manager.respond(interaction, "", "", queue_estimate + estimated_time)
+        await self.bot.task_manager.respond(interaction, None, None, queue_estimate + estimated_time)
 
         self.bot.task_manager.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time)
 

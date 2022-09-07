@@ -14,7 +14,7 @@ class Task_manager(object):
         returnString = "Your task will be processed and should be done in " + str(queue_estimate) + " seconds."
         button = None
 
-        if (promptType != "" and promptString != ""):
+        if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
 
             promptID = db.record("SELECT MAX(promptID) FROM prompts") + 1
