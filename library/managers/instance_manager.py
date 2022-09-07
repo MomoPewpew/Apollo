@@ -111,7 +111,7 @@ class Instance_manager(object):
         print()
         print("Waiting for public IPv4 address...")
         print()
-        time.sleep(20)
+        time.sleep(60)
         response = self.ec2.describe_instances()
         first_array = response["Reservations"]
         first_index = first_array[0]

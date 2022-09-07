@@ -127,7 +127,7 @@ class Task_manager(object):
                     if self.bot.instance_manager.is_instance_listed(id):
                         index = self.bot.instance_manager.get_instance_index(id)
 
-                        queueTimes[index] += estimatedTimes[i] - max((datetime.utcnow() - timeSents[i]), 2)
+                        queueTimes[index] += estimatedTimes[i] - max(int(datetime.utcnow().timestamp() - timeSents[i].timestamp()), 2)
                 else:
                     estimatedTimesRemaining.append(estimatedTimes[i])
 
