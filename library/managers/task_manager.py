@@ -104,7 +104,7 @@ class Task_manager(object):
                 queue_estimate = queue_estimates[instance]
 
         if (queue_estimate == -1 or queue_estimate > 60) and self.bot.instance_manager.get_total_active() < self.bot.instance_manager.get_total_instances():
-            queue_estimate = 60
+            queue_estimate = 40
             boot_new = True
 
         return queue_estimate, boot_new

@@ -8,15 +8,21 @@ from botocore.exceptions import ClientError, WaiterError
 class Instance_manager(object):
     ec2 = boto3.client('ec2',region_name='eu-west-2')
     ssm = boto3.client('ssm',region_name='eu-west-2')
-    instance_id = [""]
     active_instances = []
+    instance_ips = []
 
     def __init__(self) -> None:
         self.instance_id = self.read_credentials()
+        for append in range(len(self.instance_id) + 1):
+            self.instance_ips.append("")
+
         print()
 
     def get_instance_id(self, index: int) -> str:
         return self.instance_id[index]
+
+    def get_instance_ip(self, index: int) -> str:
+        return self.instance_ips[index]
 
     def get_instance_index(self, id: str) -> int:
         return self.instance_id.index(id)
@@ -65,7 +71,7 @@ class Instance_manager(object):
             response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
             self.active_instances.append(index)
-            self.fetch_public_ip()
+            self.fetch_public_ip(index)
         except ClientError as e:
             print(e)
 
@@ -107,19 +113,20 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
-    def fetch_public_ip(self) -> None:
+    def fetch_public_ip(self, index: int) -> None:
         print()
         print("Waiting for public IPv4 address...")
         print()
-        time.sleep(60)
+        time.sleep(40)
         response = self.ec2.describe_instances()
         first_array = response["Reservations"]
         first_index = first_array[0]
         instances_dict = first_index["Instances"]
         instances_array = instances_dict[0]
         ip_address = instances_array["PublicIpAddress"]
+        self.instance_ips[index] = format(ip_address)
         print()
-        print("Public IPv4 address of the EC2 instance: {0}".format(ip_address))
+        print(f"Public IPv4 address of the EC2 instance: {self.instance_ips[index]}")
 
     def send_command(self, index: int, command: str) -> str:
         commands = [command]
@@ -159,3 +166,6 @@ class Instance_manager(object):
         output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
         
         print("Output: " + output['StandardOutputContent'])
+
+    def download_output(self, index: int) -> None:
+        os.system(f"scp -o \"StrictHostKeyChecking no\" -i daedaluspem.pem ubuntu@{self.get_instance_ip(index)}:/home/ubuntu/Daedalus/out/* ./out")

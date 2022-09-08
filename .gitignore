@@ -156,3 +156,4 @@ data/db/database.db
 data/db/database.db-journal
 library/managers/instance_id.txt
 rootkey.csv
+daedaluspem.pem
