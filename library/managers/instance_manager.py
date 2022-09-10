@@ -10,17 +10,25 @@ from botocore.exceptions import ClientError, WaiterError
 class Instance_manager(object):
     ec2 = boto3.client('ec2',region_name='eu-west-2')
     ssm = boto3.client('ssm',region_name='eu-west-2')
-    active_instances = []
     instance_ips = []
-    instances_status = []
+    instance_statuses = []
 
     def __init__(self) -> None:
         self.instance_ids = self.read_credentials()
         for append in range(len(self.instance_ids) + 1):
             self.instance_ips.append("")
-            self.instances_status.append("stopped")
+            self.instance_statuses.append("stopped")
 
         print()
+
+    def read_credentials(self) -> list[str]:
+        credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_ids.txt")
+        try:
+            with open(credentials_file_path, 'r') as f:
+                credentials = [line.strip() for line in f]
+                return credentials
+        except FileNotFoundError as e:
+            print("Error Message: {0}".format(e))
 
     def get_instance_id(self, index: int) -> str:
         return self.instance_ids[index]
@@ -36,35 +44,53 @@ class Instance_manager(object):
     
     def get_random_instance(self) -> int:
         i = -1
-        if (self.get_total_instances() > self.get_total_active()):
-            while i in self.active_instances or i == -1:
-                i = random.randint(0, self.get_total_instances() - 1)
+        if (self.can_boot()):
+            most_favorable_status = "stopping"
+            if self.should_boot(): most_favorable_status = "stopped"
+
+            while i == -1 or self.fetch_ec2_statuses[i] != most_favorable_status:
+                i = random.randint(0, len(self.instance_ids) - 1)
 
         return i
     
-    def get_total_active(self) -> int:
-        return len(self.active_instances)
+    async def force_status_update_all(self) -> None:
+        for index in len(self.instance_statuses):
+            await self.force_status_update(index)
 
-    def get_total_instances(self) -> int:
-        return len(self.instance_ids)
+    async def force_status_update(self, index: int) -> None:
+        self.instance_statuses[index] = await self.fetch_ec2_status(index)
+        if self.instance_statuses[index] == "running" and await self.is_ssm_available(index):
+            self.instance_statuses[index] = "available"
 
-    def read_credentials(self) -> list[str]:
-        credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_ids.txt")
-        try:
-            with open(credentials_file_path, 'r') as f:
-                credentials = [line.strip() for line in f]
-                return credentials
-        except FileNotFoundError as e:
-            print("Error Message: {0}".format(e))
+    ##can_boot checks whether it's possible to boot an instance
+    def can_boot(self) -> None:
+        return (
+            "stopped" in self.instance_statuses or
+            "stopping" in self.instance_statuses
+        )
+    
+    ##should_boot checks whether booting something would be faster to boot an instance than to wait for active instances to finish
+    def should_boot(self) -> None:
+        return (
+            "stopped" in self.instance_statuses
+        )
+    
+    ##must_boot checks whether booting up a new instance is a neccesity
+    def must_boot(self) -> None:
+        return not (
+            "pending" in self.instance_statuses or
+            "running" in self.instance_statuses or
+            "available" in self.instance_statuses or
+            "busy" in self.instance_statuses
+        )
 
     async def start_ec2(self, index: int) -> None:
-        self.instances_status[index] = await self.get_ec2_status(index)
-        self.active_instances.append(index)
+        self.instance_statuses[index] = await self.fetch_ec2_status(index)
 
-        if self.instances_status[index] == "stopped" or self.instances_status[index] == "stopping":
-            if self.instances_status[index] == "stopping":
+        if self.instance_statuses[index] == "stopped" or self.instance_statuses[index] == "stopping":
+            if self.instance_statuses[index] == "stopping":
                 print(f"Tried to start instance {index} but it was stopping. The process will automatically be resumed after a complete stop.")
-                while await self.get_ec2_status(index) != "stopped":
+                while await self.fetch_ec2_status(index) != "stopped":
                     await asyncio.sleep(30)
 
             print(f"Trying to start instance {index}")
@@ -79,7 +105,7 @@ class Instance_manager(object):
             # Dry run succeeded, run start_instances without dryrun
             try:
                 print("  Start instance without dry run...")
-                self.instances_status[index] = "pending"
+                self.instance_statuses[index] = "pending"
                 self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
                 await asyncio.sleep(30)
             except ClientError as e:
@@ -88,11 +114,11 @@ class Instance_manager(object):
             print(f"Tried to start instance {index} but it was already running. Attempting to engage it anyway.")
 
         await self.fetch_public_ip(index)
-        self.instances_status[index] = "running"
+        self.instance_statuses[index] = "running"
 
         while not await self.is_ssm_available(index):
             await asyncio.sleep(2)
-        self.instances_status[index] = "available"
+        self.instance_statuses[index] = "available"
         print(f"  Instance {index} is now available.")
 
     def stop_ec2(self, index: int) -> None:
@@ -107,7 +133,6 @@ class Instance_manager(object):
         # Dry run succeeded, call stop_instances without dryrun
         try:
             response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
-            self.active_instances.remove(index)
             print(response)
         except ClientError as e:
             print(e)
@@ -143,7 +168,7 @@ class Instance_manager(object):
 
         print(f"  Public IPv4 address of the EC2 instance: {self.instance_ips[index]}")
 
-    async def get_ec2_status(self, index: int) -> str:
+    async def fetch_ec2_status(self, index: int) -> str:
         instances = self.ec2.describe_instances()["Reservations"][0]["Instances"]
         instance_ids = []
         states = []
@@ -176,7 +201,7 @@ class Instance_manager(object):
         print("Sending commands:")
         for cmd in commands:
             print(cmd)
-        print(f"To server {index}")
+        print(f"To instance {index}")
 
         response = self.ssm.send_command(
             InstanceIds=[instance_id],
