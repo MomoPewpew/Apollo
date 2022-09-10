@@ -59,40 +59,39 @@ class Instance_manager(object):
 
     async def start_ec2(self, index: int) -> None:
         self.instances_status[index] = await self.get_ec2_status(index)
-        if self.instances_status[index] != "stopped":
-            if self.instances_status[index] == "running" or self.instances_status[index] == "starting":
-                print(f"Tried to start instance {index} but it was already running.")
-                return
-            elif self.instances_status[index] == "stopping":
+
+        if self.instances_status[index] == "stopped" or self.instances_status[index] == "stopping":
+            if self.instances_status[index] == "stopping":
                 print(f"Tried to start instance {index} but it was stopping. The process will automatically be resumed after a complete stop.")
                 while await self.get_ec2_status(index) != "stopped":
                     await asyncio.sleep(30)
 
-        print(f"Trying to start instance {index}")
+            print(f"Trying to start instance {index}")
 
-        try:
-            print("  Start dry run...")
-            self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=True)
-        except ClientError as e:
-            if 'DryRunOperation' not in str(e):
-                raise
+            try:
+                print("  Start dry run...")
+                self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=True)
+            except ClientError as e:
+                if 'DryRunOperation' not in str(e):
+                    raise
 
-        # Dry run succeeded, run start_instances without dryrun
-        try:
-            print("  Start instance without dry run...")
-            response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
-            print(response)
-            self.active_instances.append(index)
-            await asyncio.sleep(30)
-            await self.fetch_public_ip(index)
-            self.instances_status[index] = "running"
+            # Dry run succeeded, run start_instances without dryrun
+            try:
+                print("  Start instance without dry run...")
+                response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
+                print(response)
+                self.active_instances.append(index)
+                await asyncio.sleep(30)
+            except ClientError as e:
+                print(e)
 
-            while not await self.is_ssm_available(index):
-                await asyncio.sleep(2)
-            self.instances_status[index] = "available"
-            print(f"  Instance {index} is now available.")
-        except ClientError as e:
-            print(e)
+        await self.fetch_public_ip(index)
+        self.instances_status[index] = "running"
+
+        while not await self.is_ssm_available(index):
+            await asyncio.sleep(2)
+        self.instances_status[index] = "available"
+        print(f"  Instance {index} is now available.")
 
     def stop_ec2(self, index: int) -> None:
         print(f"Trying to stop instance {index}")
