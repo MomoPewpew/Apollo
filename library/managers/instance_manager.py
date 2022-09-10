@@ -84,6 +84,8 @@ class Instance_manager(object):
                 await asyncio.sleep(30)
             except ClientError as e:
                 print(e)
+        else:
+            print(f"Tried to start instance {index} but it was already running. Attempting to engage it anyway.")
 
         await self.fetch_public_ip(index)
         self.instances_status[index] = "running"
