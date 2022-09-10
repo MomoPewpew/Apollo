@@ -106,7 +106,6 @@ class Task_manager(object):
         index = self.bot.instance_manager.get_random_instance()
         if index >= 0:
             await self.bot.instance_manager.start_ec2(index)
-            self.bot.processing = True
             await self.send_first_task(index)
         else:
             print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
