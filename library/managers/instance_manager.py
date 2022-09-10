@@ -59,6 +59,7 @@ class Instance_manager(object):
 
     async def start_ec2(self, index: int) -> None:
         self.instances_status[index] = await self.get_ec2_status(index)
+        self.active_instances.append(index)
 
         if self.instances_status[index] == "stopped" or self.instances_status[index] == "stopping":
             if self.instances_status[index] == "stopping":
@@ -78,9 +79,9 @@ class Instance_manager(object):
             # Dry run succeeded, run start_instances without dryrun
             try:
                 print("  Start instance without dry run...")
+                self.instances_status[index] = "pending"
                 response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
                 print(response)
-                self.active_instances.append(index)
                 await asyncio.sleep(30)
             except ClientError as e:
                 print(e)
