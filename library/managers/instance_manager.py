@@ -80,8 +80,7 @@ class Instance_manager(object):
             try:
                 print("  Start instance without dry run...")
                 self.instances_status[index] = "pending"
-                response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
-                print(response)
+                self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
                 await asyncio.sleep(30)
             except ClientError as e:
                 print(e)

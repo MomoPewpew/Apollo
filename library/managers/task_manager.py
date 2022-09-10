@@ -112,10 +112,14 @@ class Task_manager(object):
             print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
 
     async def send_first_task(self, index: int) -> None:
-        taskID, instructions = db.record("SELECT taskID, instructions FROM tasks WHERE timeReceived is NULL AND taskID=(SELECT MIN(taskID) FROM tasks)")
+        taskID = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")[0]
 
         if taskID == None:
             return
+
+        instructions = db.record("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )[0]
 
         db.execute("UPDATE tasks SET server = ?, timeSent = ? WHERE taskID = ?",
             self.bot.instance_manager.get_instance_id(index),
