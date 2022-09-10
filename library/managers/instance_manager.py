@@ -90,7 +90,7 @@ class Instance_manager(object):
         if self.instance_statuses[index] == "stopped" or self.instance_statuses[index] == "stopping":
             if self.instance_statuses[index] == "stopping":
                 print(f"Tried to start instance {index} but it was stopping. The process will automatically be resumed after a complete stop.")
-                while await self.fetch_ec2_status(index) != "stopped":
+                while await self.fetch_ec2_status(index) == "stopping":
                     await asyncio.sleep(30)
 
             print(f"Trying to start instance {index}")
@@ -132,6 +132,7 @@ class Instance_manager(object):
 
         # Dry run succeeded, call stop_instances without dryrun
         try:
+            self.instance_statuses[index] = "stopping"
             response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
         except ClientError as e:
@@ -149,6 +150,7 @@ class Instance_manager(object):
 
         # Dry run succeeded, call stop_instances without dryrun
         try:
+            self.instance_statuses[index] = "stopping"
             response = self.ec2.stop_instances(InstanceIds=[self.get_instance_id(index)], Hibernate=True, DryRun=False)
             print(response)
         except ClientError as e:
