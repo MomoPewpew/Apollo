@@ -17,7 +17,7 @@ class Task_manager(object):
         else:
             taskID = db.record("SELECT MAX(taskID) FROM tasks")[0] + 1
 
-        returnString = f"Task {taskID} will be processed and should be done in {queue_estimate} seconds."
+        returnString = f"Task ```{taskID}``` will be processed and should be done in ```{queue_estimate} seconds```."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
@@ -172,8 +172,11 @@ class Task_manager(object):
 
         await eval('self.receive_' + receiveType + '(taskID, userID, channelID, file_path, file_name)')
 
+    async def message_requester(self, taskID: int, userID: int, channelID: int, embed: discord.Embed, file: discord.File) -> None:
+        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task ```{taskID}```",embed=embed, file=file)
+
     async def receive_image(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
-        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x00ff00)
+        embed = discord.Embed(title="Image", description=f"Task ```{taskID}```", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -196,9 +199,6 @@ class Task_manager(object):
         )
 
         await self.message_requester(taskID, userID, channelID, embed, None)
-
-    async def message_requester(self, taskID: int, userID: int, channelID: int, embed: discord.Embed, file: discord.File) -> None:
-        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task {taskID}",embed=embed, file=file)
 
 class Delete_button(Button):
     def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int):
