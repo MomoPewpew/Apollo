@@ -1,6 +1,5 @@
 import asyncio
 import os
-from re import I
 import shutil
 import random
 import boto3
