@@ -1,5 +1,7 @@
+import asyncio
 import os
 from re import I
+import shutil
 import time
 import random
 import boto3
@@ -53,7 +55,7 @@ class Instance_manager(object):
         except FileNotFoundError as e:
             print("Error Message: {0}".format(e))
 
-    def start_ec2(self, index: int) -> None:
+    async def start_ec2(self, index: int) -> None:
         print("------------------------------")
         print("Try to start the EC2 instance.")
         print("------------------------------")
@@ -71,7 +73,7 @@ class Instance_manager(object):
             response = self.ec2.start_instances(InstanceIds=[self.get_instance_id(index)], DryRun=False)
             print(response)
             self.active_instances.append(index)
-            self.fetch_public_ip(index)
+            await self.fetch_public_ip(index)
         except ClientError as e:
             print(e)
 
@@ -113,11 +115,11 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
-    def fetch_public_ip(self, index: int) -> None:
+    async def fetch_public_ip(self, index: int) -> None:
         print()
         print("Waiting for public IPv4 address...")
         print()
-        time.sleep(40)
+        await asyncio.sleep(60)
         response = self.ec2.describe_instances()
         first_array = response["Reservations"]
         first_index = first_array[0]
@@ -134,7 +136,7 @@ class Instance_manager(object):
         resp = self.send_commands(index, commands)
         return resp
 
-    def send_commands(self, index: int, commands: list[str]) -> None:
+    async def send_commands(self, index: int, commands: list[str]) -> None:
         instance_id = self.get_instance_id(index)
         
         print("Sending commands:")
@@ -149,7 +151,7 @@ class Instance_manager(object):
                 'commands': commands
             }
         )
-        time.sleep(2)
+        await asyncio.sleep(2)
 
         command_id = response['Command']['CommandId']
 
@@ -168,4 +170,19 @@ class Instance_manager(object):
         print("Output: " + output['StandardOutputContent'])
 
     def download_output(self, index: int) -> None:
-        os.system(f"scp -o \"StrictHostKeyChecking no\" -i daedaluspem.pem ubuntu@{self.get_instance_ip(index)}:/home/ubuntu/Daedalus/out/* ./out")
+        path = os.path.join("./out/", f"instance_{index}")
+
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        for filename in os.listdir(path):
+            file_path = os.path.join(path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+        os.system(f"scp -o \"StrictHostKeyChecking no\" -i daedaluspem.pem ubuntu@{self.get_instance_ip(index)}:/home/ubuntu/Daedalus/out/* ./out/instance_{index}")

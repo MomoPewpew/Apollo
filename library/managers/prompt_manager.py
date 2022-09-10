@@ -7,7 +7,11 @@ class Prompt_manager(object):
         self.bot = bot
 
     async def add_prompt_with_revoke_button(self, interaction: discord.Interaction, promptType: str, promptString: str, userID: int) -> None:
-        promptID = db.record("SELECT MAX(promptID) FROM prompts") + 1
+        if db.record("SELECT promptID FROM prompts WHERE promptID = 1") == None:
+            promptID = 1
+        else:
+            promptID = db.record("SELECT MAX(promptID) FROM prompts")[0] + 1
+
         promptTags = self.bot.user_manager.get_tags_active_csv(userID)
 
         self.add_prompt(promptType, promptString, userID)

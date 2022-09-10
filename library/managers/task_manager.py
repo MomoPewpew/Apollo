@@ -1,3 +1,4 @@
+import os
 from typing import Any, Union
 from ..db import db
 from datetime import datetime
@@ -11,13 +12,17 @@ class Task_manager(object):
         self.bot = bot
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
-        returnString = "Your task will be processed and should be done in " + str(queue_estimate) + " seconds."
-        button = None
+        if db.record("SELECT taskID FROM tasks WHERE taskID = 1") == None:
+            taskID = 1
+        else:
+            taskID = db.record("SELECT MAX(taskID) FROM tasks")[0] + 1
+
+        returnString = f"Task {taskID} will be processed and should be done in {queue_estimate} seconds."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
 
-            promptID = db.record("SELECT MAX(promptID) FROM prompts") + 1
+            promptID = db.record("SELECT MAX(promptID) FROM prompts")[0] + 1
             promptTags = self.bot.user_manager.get_tags_active_csv(userID)
 
             self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
@@ -30,11 +35,10 @@ class Task_manager(object):
             returnString += "\nIf you would like to delete this prompt from your history then press the delete button."
 
             button = Delete_button(self, promptID)
-        
-        if button == None:
-            await interaction.response.send_message(content=returnString, ephemeral = True)
-        else:
+
             await interaction.response.send_message(content=returnString, button=button, ephemeral = True)
+        else:
+            await interaction.response.send_message(content=returnString, ephemeral = True)
 
     def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int) -> None:
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",
@@ -45,53 +49,6 @@ class Task_manager(object):
             estimatedTime
         )
 
-    def start(self) -> None:
-        index = self.bot.instance_manager.get_random_instance()
-        if index >= 0:
-            self.bot.instance_manager.start_ec2(index)
-            self.bot.processing = True
-            self.send_first_task(index)
-        else:
-            print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
-
-    def send_first_task(self, index: int) -> None:
-        taskID, instructions = db.record("SELECT taskID, instructions FROM tasks WHERE timeReceived is NULL AND taskID=(SELECT MIN(taskID) FROM tasks)")
-
-        if taskID == None:
-            return
-
-        db.execute("UPDATE tasks SET server = ?, timeSent = ? WHERE taskID = ?",
-            self.bot.instance_manager.get_instance_id(index),
-            datetime.utcnow(),
-            taskID
-        )
-
-        self.bot.instance_manager.send_command(index, instructions)
-
-        self.receive_task_output(taskID)
-
-        self.send_first_task(index)
-
-    def receive_task_output(self, taskID:int) -> None:
-        ##TODO: Refine this
-        outputURL = ""
-
-        db.execute("UPDATE tasks SET outputURL = ?, timeReceived = ? WHERE taskID = ?",
-            outputURL,
-            datetime.utcnow(),
-            taskID
-        )
-
-        receiveType, userID, channelID = db.record("SELECT receiveType, userID, channelID FROM tasks WHERE taskID = ?",
-            taskID
-        )
-
-        if receiveType == "image":
-            return ##TODO: Send 
-
-    def send_idle_work(self, index: int) -> None:
-        return ##TODO: Make this
-    
     def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted
         boot_new = False
@@ -104,7 +61,7 @@ class Task_manager(object):
                 queue_estimate = queue_estimates[instance]
 
         if (queue_estimate == -1 or queue_estimate > 60) and self.bot.instance_manager.get_total_active() < self.bot.instance_manager.get_total_instances():
-            queue_estimate = 40
+            queue_estimate = 60
             boot_new = True
 
         return queue_estimate, boot_new
@@ -144,6 +101,101 @@ class Task_manager(object):
                 queueTimes[i] += taskTime
 
         return queueTimes
+
+    async def start(self) -> None:
+        index = self.bot.instance_manager.get_random_instance()
+        if index >= 0:
+            await self.bot.instance_manager.start_ec2(index)
+            self.bot.processing = True
+            await self.send_first_task(index)
+        else:
+            print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
+
+    async def send_first_task(self, index: int) -> None:
+        taskID, instructions = db.record("SELECT taskID, instructions FROM tasks WHERE timeReceived is NULL AND taskID=(SELECT MIN(taskID) FROM tasks)")
+
+        if taskID == None:
+            return
+
+        db.execute("UPDATE tasks SET server = ?, timeSent = ? WHERE taskID = ?",
+            self.bot.instance_manager.get_instance_id(index),
+            datetime.utcnow(),
+            taskID
+        )
+
+        await self.bot.instance_manager.send_command(index, instructions)
+
+        await self.receive_task_output(taskID)
+
+        await self.send_first_task(index)
+
+    def send_idle_work(self, index: int) -> None:
+        return ##TODO: Make this
+
+    async def receive_task_output(self, index: int, taskID: int) -> None:
+        self.bot.instance_manager.download_output(index)
+
+        receiveType, userID, channelID = db.record("SELECT receiveType, userID, channelID FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        db.execute("UPDATE tasks SET timeReceived = ? WHERE taskID = ?",
+            datetime.utcnow(),
+            taskID
+        )
+
+        path = os.path.join("./out/", f"instance_{index}")
+
+        if not os.path.exists(path):
+            print(f"The corresponding output folder for instance {index} does not exist.")
+            return
+
+        fileCount = 0
+        file_path = ""
+        for filename in os.listdir(path):
+            file_path_temp = os.path.join(path, filename)
+            if os.path.isfile(file_path_temp):
+                file_path = file_path_temp
+                file_name = filename
+                fileCount += 1
+        
+        if fileCount != 1:
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task {taskID}",embed=embed, file=file)
+            db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+                "Error",
+                taskID
+            )
+            return
+
+        await eval('self.receive_' + receiveType + '(taskID, userID, channelID, file_path, filename)')
+
+    async def receive_image(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
+        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x00ff00)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+            f"attachment://{filename}",
+            taskID
+        )
+
+        await self.message_requester(taskID, userID, channelID, embed, file)
+    
+    async def receive_text(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
+        ##TODO: Read file
+        output_txt = ""
+
+        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x00ff00)
+
+        db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+            output_txt,
+            taskID
+        )
+
+        await self.message_requester(taskID, userID, channelID, embed, None)
+
+    async def message_requester(self, taskID: int, userID: int, channelID: int, embed: discord.Embed, file: discord.File) -> None:
+        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task {taskID}",embed=embed, file=file)
 
 class Delete_button(Button):
     def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int):

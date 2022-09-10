@@ -36,7 +36,7 @@ class Arcane(Cog):
         self.bot.task_manager.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time)
 
         if boot_new:
-            self.bot.task_manager.start()
+            await self.bot.task_manager.start()
 
     @Cog.listener()
     async def on_ready(self) -> None:

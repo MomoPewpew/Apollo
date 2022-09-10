@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS tasks (
     server STRING,
     timeSent STRING,
     timeReceived STRING,
-    outputURL STRING
+    output STRING
 );
