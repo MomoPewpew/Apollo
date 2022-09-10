@@ -54,7 +54,7 @@ class Instance_manager(object):
         return i
     
     async def force_status_update_all(self) -> None:
-        for index in len(self.instance_statuses):
+        for index in range(len(self.instance_statuses)):
             await self.force_status_update(index)
 
     async def force_status_update(self, index: int) -> None:
