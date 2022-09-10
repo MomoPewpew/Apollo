@@ -34,7 +34,7 @@ class Task_manager(object):
             
             returnString += "\nIf you would like to delete this prompt from your history then press the delete button."
 
-            button = Delete_button(self, promptID)
+            button = Delete_button(self.bot.prompt_manager, promptID)
 
             await interaction.response.send_message(content=returnString, button=button, ephemeral = True)
         else:
