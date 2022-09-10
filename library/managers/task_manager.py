@@ -133,24 +133,23 @@ class Task_manager(object):
         return ##TODO: Make this
 
     async def receive_task_output(self, index: int, taskID: int) -> None:
-        print(0)
         self.bot.instance_manager.download_output(index)
-        print(1)
+
         receiveType, userID, channelID = db.record("SELECT receiveType, userID, channelID FROM tasks WHERE taskID = ?",
             taskID
         )
-        print(2)
+
         db.execute("UPDATE tasks SET timeReceived = ? WHERE taskID = ?",
             datetime.utcnow(),
             taskID
         )
-        print(3)
+
         path = os.path.join("./out/", f"instance_{index}")
-        print(4)
+
         if not os.path.exists(path):
             print(f"The corresponding output folder for instance {index} does not exist.")
             return
-        print(5)
+
         fileCount = 0
         file_path = ""
         for filename in os.listdir(path):
@@ -159,7 +158,7 @@ class Task_manager(object):
                 file_path = file_path_temp
                 file_name = filename
                 fileCount += 1
-        print(6)
+
         if fileCount != 1:
             await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Something went wrong with task {taskID}")
             db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
