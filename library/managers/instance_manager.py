@@ -2,7 +2,6 @@ import asyncio
 import os
 from re import I
 import shutil
-import time
 import random
 import boto3
 from botocore.exceptions import ClientError, WaiterError
