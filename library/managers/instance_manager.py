@@ -130,11 +130,8 @@ class Instance_manager(object):
         print()
         print(f"Public IPv4 address of the EC2 instance: {self.instance_ips[index]}")
 
-    def send_command(self, index: int, command: str) -> str:
-        commands = [command]
-
-        resp = self.send_commands(index, commands)
-        return resp
+    async def send_command(self, index: int, command: str) -> None:
+        await self.send_commands(index, [command])
 
     async def send_commands(self, index: int, commands: list[str]) -> None:
         instance_id = self.get_instance_id(index)
@@ -167,7 +164,7 @@ class Instance_manager(object):
 
         output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
         
-        print("Output: " + output['StandardOutputContent'])
+        print(output['StandardOutputContent'])
 
     def download_output(self, index: int) -> None:
         path = os.path.join("./out/", f"instance_{index}")
