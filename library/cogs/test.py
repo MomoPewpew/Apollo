@@ -17,7 +17,7 @@ class Test(Cog):
     async def command_instanceon(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.start_ec2(0)
+        await self.bot.instance_manager.start_ec2(0)
 
     @app_commands.command(
         name="instanceoff"
@@ -33,7 +33,7 @@ class Test(Cog):
     async def command_testcommand(
         self, interaction: discord.Interaction
     ) -> None:
-        self.bot.instance_manager.download_output(0)
+        print(await self.bot.instance_manager.get_ec2_status(0))
 
     @Cog.listener()
     async def on_ready(self) -> None:
