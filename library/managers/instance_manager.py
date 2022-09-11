@@ -45,8 +45,8 @@ class Instance_manager(object):
         if (self.can_boot()):
             most_favorable_status = "stopping"
             if self.should_boot(): most_favorable_status = "stopped"
-
-            while i == -1 or self.fetch_ec2_statuses[i] != most_favorable_status:
+            ##TODO: What the heck is this
+            while i == -1 or self.instance_statuses[i] != most_favorable_status:
                 i = random.randint(0, len(self.instance_ids) - 1)
 
         return i
@@ -74,13 +74,14 @@ class Instance_manager(object):
         )
 
     async def start_ec2(self, index: int) -> None:
-        self.instance_statuses[index] = await self.fetch_ec2_status(index)
+        await self.update_instance_statuses()
 
         if self.instance_statuses[index] == "stopped" or self.instance_statuses[index] == "stopping":
             if self.instance_statuses[index] == "stopping":
                 print(f"Tried to start instance {index} but it was stopping. The process will automatically be resumed after a complete stop.")
-                while await self.fetch_ec2_status(index) == "stopping":
+                while await self.instance_statuses[index] == "stopping":
                     await asyncio.sleep(30)
+                    await self.update_instance_statuses()
 
             print(f"Trying to start instance {index}")
 
