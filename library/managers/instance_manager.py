@@ -15,7 +15,7 @@ class Instance_manager(object):
         self.instance_ids = self.read_credentials()
         for append in range(self.get_total_instances()):
             self.instance_ips.append("")
-            self.instance_statuses.append("stopped")
+            self.instance_statuses.append("")
 
         self.update_instance_statuses()
 
