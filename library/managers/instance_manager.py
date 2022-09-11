@@ -41,19 +41,8 @@ class Instance_manager(object):
     def get_total_instances(self) -> int:
         return len(self.instance_ids)
     
-    def get_total_active(self) -> int:
-        i = 0
-
-        for status in self.instance_statuses:
-            if (
-                status == "pending" or
-                status == "running" or
-                status == "available" or
-                status == "busy"
-            ):
-                i += 1
-        
-        return i
+    def get_total_active(self) -> int:        
+        return self.instance_statuses.count("pending", "running", "available", "busy")
 
     def get_random_instance(self) -> int:
         i = -1
