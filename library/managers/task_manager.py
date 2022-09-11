@@ -146,7 +146,7 @@ class Task_manager(object):
         return ##TODO: Make this
 
     async def receive_task_output(self, index: int, taskID: int) -> None:
-        self.bot.instance_manager.download_output(index)
+        await self.bot.instance_manager.download_output(index)
 
         receiveType, userID, channelID = db.record("SELECT receiveType, userID, channelID FROM tasks WHERE taskID = ?",
             taskID

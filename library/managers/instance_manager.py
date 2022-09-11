@@ -264,7 +264,7 @@ class Instance_manager(object):
         
         print(output['StandardOutputContent'])
 
-    def download_output(self, index: int) -> None:
+    async def download_output(self, index: int) -> None:
         path = os.path.join("./out/", f"instance_{index}")
 
         if not os.path.exists(path):
