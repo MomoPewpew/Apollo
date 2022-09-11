@@ -114,7 +114,10 @@ class Task_manager(object):
         taskID = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")[0]
 
         if taskID == None:
+            self.bot.instance_manager.instance_statuses[index] = "available"
             return
+        else:
+            self.bot.instance_manager.instance_statuses[index] = "busy"
 
         instructions = db.record("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
