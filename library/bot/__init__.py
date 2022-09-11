@@ -48,6 +48,7 @@ class Bot(BotBase):
     async def main(self) -> None:
         async with bot:
             print("Running setup...")
+            await self.instance_manager.update_instance_statuses()
             await self.setup()
             print("Connecting...")
             await bot.start(self.TOKEN, reconnect=True)

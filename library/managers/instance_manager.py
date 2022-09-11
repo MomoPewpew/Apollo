@@ -15,9 +15,7 @@ class Instance_manager(object):
         self.instance_ids = self.read_credentials()
         for append in range(self.get_total_instances()):
             self.instance_ips.append("")
-            self.instance_statuses.append("")
-
-        self.update_instance_statuses()
+            self.instance_statuses.append("stopped")
 
     def read_credentials(self) -> list[str]:
         credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_ids.txt")
@@ -163,7 +161,7 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
-    async def update_instance_statuses(self, index: int) -> str:
+    async def update_instance_statuses(self) -> str:
         instance_ids = []
         states = []
         ip_addresses = []
@@ -171,9 +169,13 @@ class Instance_manager(object):
         for instance in self.ec2.describe_instances()["Reservations"][0]["Instances"]:
             instance_ids.append(instance["InstanceId"])
             states.append(instance["State"]["Name"])
-            ip_addresses.append(format(instance["PublicIpAddress"]))
 
-        for i in self.get_total_instances():
+            if "PublicIpAddress" in instance:
+                ip_addresses.append(format(instance["PublicIpAddress"]))
+            else:
+                ip_addresses.append("")
+
+        for i in range(self.get_total_instances()):
             instance_id = instance_ids[i]
             if self.is_instance_listed(instance_id):
                 index = self.get_instance_index(instance_id)
