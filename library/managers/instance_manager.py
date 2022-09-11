@@ -50,15 +50,6 @@ class Instance_manager(object):
                 i = random.randint(0, len(self.instance_ids) - 1)
 
         return i
-    
-    async def force_status_update_all(self) -> None:
-        for index in range(len(self.instance_statuses)):
-            await self.force_status_update(index)
-
-    async def force_status_update(self, index: int) -> None:
-        self.instance_statuses[index] = await self.fetch_ec2_status(index)
-        if self.instance_statuses[index] == "running" and await self.is_ssm_available(index):
-            self.instance_statuses[index] = "available"
 
     ##can_boot checks whether it's possible to boot an instance
     def can_boot(self) -> None:
@@ -154,35 +145,48 @@ class Instance_manager(object):
         except ClientError as e:
             print(e)
 
-    async def fetch_public_ip(self, index: int) -> None:
-        instances = self.ec2.describe_instances()["Reservations"][0]["Instances"]
+    async def update_instance_statuses(self, index: int) -> str:
+        instance_ids = []
+        states = []
+        ip_addresses = []
 
+        for instance in self.ec2.describe_instances()["Reservations"][0]["Instances"]:
+            instance_ids.append(instance["InstanceId"])
+            states.append(instance["State"]["Name"])
+            ip_addresses.append(format(instance["PublicIpAddress"]))
+
+        for i in range(len(instance_ids)):
+            instance_id = instance_ids[i]
+            if self.is_instance_listed(instance_id):
+                index = self.get_instance_index(instance_id)
+                state = states[i]
+                self.instance_ips[index] = ip_addresses[i]
+                if not (state == "running" and (self.instance_statuses[index] == "available" or self.instance_statuses[index] == "busy")):
+                    self.instance_statuses[index] = state
+
+        if "running" in self.instance_statuses:
+            ssm_ids = []
+
+            for instance_information in self.ssm.describe_instance_information()["InstanceInformationList"]:
+                ssm_ids.append(instance_information["InstanceId"])
+            
+            for instance_id in ssm_ids:
+                if self.is_instance_listed(instance_id):
+                    index = self.get_instance_index(instance_id)
+                    if self.instance_statuses[index] == "running":
+                        self.instance_statuses[index] == "available"
+
+    async def fetch_public_ip(self, index: int) -> None:
         instance_ids = []
         ip_addresses = []
 
-        for instance in instances:
+        for instance in self.ec2.describe_instances()["Reservations"][0]["Instances"]:
             instance_ids.append(instance["InstanceId"])
             ip_addresses.append(format(instance["PublicIpAddress"]))
 
         self.instance_ips[index] = ip_addresses[instance_ids.index(self.get_instance_id(index))]
 
         print(f"  Public IPv4 address of the EC2 instance: {self.instance_ips[index]}")
-
-    async def fetch_ec2_status(self, index: int) -> str:
-        instances = self.ec2.describe_instances()["Reservations"][0]["Instances"]
-        instance_ids = []
-        states = []
-
-        for instance in instances:
-            instance_ids.append(instance["InstanceId"])
-            states.append(instance["State"]["Name"])
-
-        instance_id = self.get_instance_id(index)
-
-        if instance_id in instance_ids:
-            return states[instance_ids.index(instance_id)]
-        else:
-            return "unknown"
 
     async def is_ssm_available(self, index: int) -> bool:
         ssm_ids = []
