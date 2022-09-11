@@ -43,6 +43,20 @@ class Instance_manager(object):
     
     def get_total_active(self) -> int:        
         return self.instance_statuses.count("pending", "running", "available", "busy")
+    
+    def get_active_list(self) -> list[int]:
+        returnList = []
+
+        for i in range(len(self.instance_statuses)):
+            status = self.instance_statuses[i]
+            if (status == "pending" or
+                status == "running" or
+                status == "available" or
+                status == "busy"
+            ):
+                returnList.append(i)
+        
+        return returnList
 
     def get_random_instance(self) -> int:
         i = -1
@@ -54,6 +68,15 @@ class Instance_manager(object):
                 i = random.randint(0, self.get_total_instances() - 1)
 
         return i
+    
+    def get_available_instance(self) -> int:
+        if "available" in self.instance_statuses:
+            for i in range(len(self.instance_statuses)):
+                status = self.instance_statuses[i]
+                if status == "available":
+                    return i
+        else:
+            return -1
 
     ##can_boot checks whether it's possible to boot an instance
     def can_boot(self) -> None:
@@ -195,7 +218,7 @@ class Instance_manager(object):
 
         self.instance_ips[index] = ip_addresses[instance_ids.index(self.get_instance_id(index))]
 
-        print(f"  Public IPv4 address of the EC2 instance: {self.instance_ips[index]}")
+        print(f"  Public IPv4 address of instance {index}: {self.instance_ips[index]}")
 
     async def is_ssm_available(self, index: int) -> bool:
         ssm_ids = []

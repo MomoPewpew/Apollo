@@ -25,7 +25,7 @@ class Arcane(Cog):
         )
 
     async def function_arcane(self, interaction: discord.Interaction, url: str) -> None:
-        queue_estimate, boot_new = self.bot.task_manager.simulate_server_assignment()
+        queue_estimate, boot_new = await self.bot.task_manager.simulate_server_assignment()
 
         estimated_time = 10
 
@@ -33,10 +33,7 @@ class Arcane(Cog):
 
         await self.bot.task_manager.respond(interaction, None, None, queue_estimate + estimated_time)
 
-        self.bot.task_manager.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time)
-
-        if boot_new:
-            await self.bot.task_manager.start()
+        await self.bot.task_manager.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     @Cog.listener()
     async def on_ready(self) -> None:

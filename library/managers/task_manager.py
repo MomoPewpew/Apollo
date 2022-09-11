@@ -17,7 +17,7 @@ class Task_manager(object):
         else:
             taskID = db.record("SELECT MAX(taskID) FROM tasks")[0] + 1
 
-        returnString = f"Task ```{taskID}``` will be processed and should be done in ```{queue_estimate} seconds```."
+        returnString = f"Task `{taskID}` will be processed and should be done in `{queue_estimate} seconds`."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
@@ -30,7 +30,7 @@ class Task_manager(object):
             if (promptTags == ","):
                 returnStrings += f"\nThe prompt \"{promptString}\" was saved to your user but you had no active tags."
             else:
-                returnStrings += f"\nThe prompt \"{promptString}\" was saved to your user under the tags ```" + promptTags[1:-1] + "```"
+                returnStrings += f"\nThe prompt \"{promptString}\" was saved to your user under the tags `" + promptTags[1:-1] + "`"
             
             returnString += "\nIf you would like to delete this prompt from your history then press the delete button."
 
@@ -40,7 +40,7 @@ class Task_manager(object):
         else:
             await interaction.response.send_message(content=returnString, ephemeral = True)
 
-    def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int) -> None:
+    async def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int, boot_new: bool) -> None:
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",
             receiveType,
             userID,
@@ -49,22 +49,39 @@ class Task_manager(object):
             estimatedTime
         )
 
-    def simulate_server_assignment(self) -> Union[int, bool]:
+        if boot_new:
+            index = self.bot.instance_manager.get_random_instance()
+            if index >= 0:
+                await self.bot.instance_manager.start_ec2(index)
+                await self.send_first_task(index)
+            else:
+                print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
+        else:
+            index = self.bot.instance_manager.get_available_instance()
+
+            if index >= 0:
+                await self.send_first_task(index)
+
+    async def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted
-        boot_new = False
+        boot_estimate = 45
+        await self.bot.instance_manager.update_instance_statuses()
+
+        if self.bot.instance_manager.must_boot():
+            return boot_estimate, True
+        
         queue_estimate = -1
 
         queue_estimates = self.get_queue_estimates()
         
-        for instance in self.bot.instance_manager.active_instances:
-            if queue_estimate < queue_estimates[instance] or queue_estimate == -1:
-                queue_estimate = queue_estimates[instance]
+        for index in self.bot.instance_manager.get_active_list():
+            if queue_estimate < queue_estimates[index] or queue_estimate == -1:
+                queue_estimate = queue_estimates[index]
 
-        if (queue_estimate == -1 or queue_estimate > 60) and self.bot.instance_manager.get_total_active() < self.bot.instance_manager.get_total_instances():
-            queue_estimate = 60
-            boot_new = True
+        if (queue_estimate == -1 or queue_estimate > 120) and self.bot.instance_manager.should_boot():
+            return boot_estimate, True
 
-        return queue_estimate, boot_new
+        return queue_estimate, False
 
     def get_queue_estimates(self) -> list[int]:
         estimatedTimes = db.record("SELECT estimatedTime FROM tasks WHERE timeReceived is NULL")
@@ -89,10 +106,9 @@ class Task_manager(object):
                     estimatedTimesRemaining.append(estimatedTimes[i])
 
             i = 0
-            active_instances = self.bot.instance_manager.active_instances
             for taskTime in estimatedTimesRemaining:
                 timeTemp = -1
-                for index in active_instances:
+                for index in self.bot.instance_manager.get_active_list():
                     if queueTimes[index] == 0: queueTimes[index] = 0
                     if queueTimes[index] < timeTemp or timeTemp == -1:
                         timeTemp = queueTimes[index]
@@ -101,14 +117,6 @@ class Task_manager(object):
                 queueTimes[i] += taskTime
 
         return queueTimes
-
-    async def start(self) -> None:
-        index = self.bot.instance_manager.get_random_instance()
-        if index >= 0:
-            await self.bot.instance_manager.start_ec2(index)
-            await self.send_first_task(index)
-        else:
-            print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
 
     async def send_first_task(self, index: int) -> None:
         taskID = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")[0]
@@ -176,10 +184,10 @@ class Task_manager(object):
         await eval('self.receive_' + receiveType + '(taskID, userID, channelID, file_path, file_name)')
 
     async def message_requester(self, taskID: int, userID: int, channelID: int, embed: discord.Embed, file: discord.File) -> None:
-        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task ```{taskID}```",embed=embed, file=file)
+        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file)
 
     async def receive_image(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
-        embed = discord.Embed(title="Image", description=f"Task ```{taskID}```", color=0x00ff00)
+        embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
