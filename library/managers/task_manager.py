@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any, Union
 from ..db import db
 from datetime import datetime
@@ -6,6 +7,7 @@ from .. import bot
 import discord
 from discord.ui import Button
 from . import prompt_manager
+import ciso8601
 
 class Task_manager(object):
     def __init__(self, bot: bot) -> None:
@@ -68,11 +70,11 @@ class Task_manager(object):
 
         if self.bot.instance_manager.must_boot():
             return boot_estimate, True
-        
+
         queue_estimate = -1
 
         queue_estimates = self.get_queue_estimates()
-        
+
         for index in self.bot.instance_manager.get_active_list():
             if queue_estimate < queue_estimates[index] or queue_estimate == -1:
                 queue_estimate = queue_estimates[index]
@@ -100,20 +102,21 @@ class Task_manager(object):
                     if self.bot.instance_manager.is_instance_listed(id):
                         index = self.bot.instance_manager.get_instance_index(id)
 
-                        queueTimes[index] += max((estimatedTimes[i] - int(datetime.utcnow().timestamp() - timeSents[i].timestamp())), 2)
+                        queueTimes[index] += max((estimatedTimes[i] - int(datetime.utcnow().timestamp() - time.mktime(ciso8601.parse_datetime(timeSents[i]).timetuple()))), 2)
                 else:
                     estimatedTimesRemaining.append(estimatedTimes[i])
+        else:
+            estimatedTimesRemaining = queueTimes
 
-            i = 0
-            for taskTime in estimatedTimesRemaining:
-                timeTemp = -1
-                for index in self.bot.instance_manager.get_active_list():
-                    if queueTimes[index] == 0: queueTimes[index] = 0
-                    if queueTimes[index] < timeTemp or timeTemp == -1:
-                        timeTemp = queueTimes[index]
-                        i = index
-                
-                queueTimes[i] += taskTime
+        i = 0
+        for taskTime in estimatedTimesRemaining:
+            timeTemp = -1
+            for index in self.bot.instance_manager.get_active_list():
+                if queueTimes[index] < timeTemp or timeTemp == -1:
+                    timeTemp = queueTimes[index]
+                    i = index
+            
+            queueTimes[i] += taskTime
 
         return queueTimes
 

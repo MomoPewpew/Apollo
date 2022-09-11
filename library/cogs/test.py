@@ -33,7 +33,7 @@ class Test(Cog):
     async def command_testcommand(
         self, interaction: discord.Interaction
     ) -> None:
-        print(await self.bot.instance_manager.get_ec2_status(0))
+        print(await self.bot.instance_manager.is_ssm_available(0))
 
     @Cog.listener()
     async def on_ready(self) -> None:
