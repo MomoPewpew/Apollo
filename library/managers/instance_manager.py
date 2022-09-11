@@ -13,7 +13,7 @@ class Instance_manager(object):
 
     def __init__(self) -> None:
         self.instance_ids = self.read_credentials()
-        for append in range(len(self.instance_ids) + 1):
+        for append in range(self.get_total_instances()):
             self.instance_ips.append("")
             self.instance_statuses.append("stopped")
 
@@ -40,6 +40,23 @@ class Instance_manager(object):
     def is_instance_listed(self, id: str) -> bool:
         return id in self.instance_ids
     
+    def get_total_instances(self) -> int:
+        return len(self.instance_ids)
+    
+    def get_total_active(self) -> int:
+        i = 0
+
+        for status in self.instance_statuses:
+            if (
+                status == "pending" or
+                status == "running" or
+                status == "available" or
+                status == "busy"
+            ):
+                i += 1
+        
+        return i
+
     def get_random_instance(self) -> int:
         i = -1
         if (self.can_boot()):
@@ -47,7 +64,7 @@ class Instance_manager(object):
             if self.should_boot(): most_favorable_status = "stopped"
 
             while i == -1 or self.instance_statuses[i] != most_favorable_status:
-                i = random.randint(0, len(self.instance_ids) - 1)
+                i = random.randint(0, self.get_total_instances() - 1)
 
         return i
 
@@ -156,7 +173,7 @@ class Instance_manager(object):
             states.append(instance["State"]["Name"])
             ip_addresses.append(format(instance["PublicIpAddress"]))
 
-        for i in range(len(instance_ids)):
+        for i in self.get_total_instances():
             instance_id = instance_ids[i]
             if self.is_instance_listed(instance_id):
                 index = self.get_instance_index(instance_id)
