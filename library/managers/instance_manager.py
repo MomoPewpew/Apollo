@@ -17,7 +17,7 @@ class Instance_manager(object):
             self.instance_ips.append("")
             self.instance_statuses.append("stopped")
 
-        print()
+        self.update_instance_statuses()
 
     def read_credentials(self) -> list[str]:
         credentials_file_path = os.path.join(os.path.dirname(__file__), "instance_ids.txt")
@@ -45,7 +45,7 @@ class Instance_manager(object):
         if (self.can_boot()):
             most_favorable_status = "stopping"
             if self.should_boot(): most_favorable_status = "stopped"
-            ##TODO: What the heck is this
+
             while i == -1 or self.instance_statuses[i] != most_favorable_status:
                 i = random.randint(0, len(self.instance_ids) - 1)
 
