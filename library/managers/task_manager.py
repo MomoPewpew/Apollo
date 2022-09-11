@@ -58,7 +58,6 @@ class Task_manager(object):
                 print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
         else:
             index = self.bot.instance_manager.get_available_instance()
-
             if index >= 0:
                 await self.send_first_task(index)
 
@@ -119,13 +118,13 @@ class Task_manager(object):
         return queueTimes
 
     async def send_first_task(self, index: int) -> None:
-        taskID = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")[0]
-
-        if taskID == None:
+        taskIDs = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")
+        if taskIDs == None:
             self.bot.instance_manager.instance_statuses[index] = "available"
             return
-        else:
-            self.bot.instance_manager.instance_statuses[index] = "busy"
+        
+        taskID = taskIDs[0]
+        self.bot.instance_manager.instance_statuses[index] = "busy"
 
         instructions = db.record("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
