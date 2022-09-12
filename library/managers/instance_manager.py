@@ -212,7 +212,7 @@ class Instance_manager(object):
                 if self.is_instance_listed(instance_id):
                     index = self.get_instance_index(instance_id)
                     if self.instance_statuses[index] == "running":
-                        self.instance_statuses[index] == "available"
+                        self.instance_statuses[index] = "available"
 
     async def fetch_public_ip(self, index: int) -> None:
         instance_ids = []
