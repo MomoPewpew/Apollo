@@ -80,6 +80,9 @@ class Instance_manager(object):
                     return i
         else:
             return -1
+    
+    def all_instances_stopping(self) -> bool:
+        return (self.instance_statuses.count("stopping") >= len(self.instance_statuses))
 
     ##can_boot checks whether it's possible to boot an instance
     def can_boot(self) -> None:
@@ -257,7 +260,7 @@ class Instance_manager(object):
         while output["Status"] == "InProgress":
             output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
             await asyncio.sleep(1)
-            
+
         print(output['StandardOutputContent'])
 
     async def download_output(self, index: int) -> None:

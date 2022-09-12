@@ -19,7 +19,10 @@ class Task_manager(object):
         else:
             taskID = db.field("SELECT MAX(taskID) FROM tasks") + 1
 
-        returnString = f"Task `{taskID}` will be processed and should be done in `{queue_estimate} seconds`."
+        if self.bot.instance_manager.all_instances_stopping():
+            returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
+        else:
+            returnString = f"Task `{taskID}` will be processed and should be done in `{queue_estimate} seconds`."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
