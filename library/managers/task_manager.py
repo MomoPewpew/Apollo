@@ -49,6 +49,18 @@ class Task_manager(object):
         else:
             await interaction.response.send_message(content=returnString, ephemeral = True)
 
+    async def start_task_backlog(self):
+        db.execute("UPDATE tasks SET server = NULL, timeSent = NULL WHERE timeReceived IS NULL")
+        taskIDs = db.column("SELECT taskID FROM tasks WHERE timeSent is NULL")
+        if len(taskIDs) > 0:
+            print("A task backlog has been found. Begin processing...")
+            index, boot_new = await self.bot.instance_manager.get_most_available_instance()
+
+            if boot_new:
+                await self.bot.instance_manager.start_ec2(index)
+
+            await self.task_loop(index)
+
     async def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int, boot_new: bool) -> None:
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",
             receiveType,
@@ -140,7 +152,7 @@ class Task_manager(object):
         return queueTimes
 
     async def task_loop(self, index: int) -> None:
-        taskIDs = db.column("SELECT taskID FROM tasks WHERE timeReceived is NULL")
+        taskIDs = db.column("SELECT taskID FROM tasks WHERE timeSent is NULL")
         if len(taskIDs) < 1:
             self.bot.instance_manager.instance_statuses[index] = "available"
             return

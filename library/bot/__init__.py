@@ -48,7 +48,6 @@ class Bot(BotBase):
     async def main(self) -> None:
         async with bot:
             print("Running setup...")
-            await self.instance_manager.update_instance_statuses()
             await self.setup()
             print("Connecting...")
             await bot.start(self.TOKEN, reconnect=True)
@@ -99,10 +98,12 @@ class Bot(BotBase):
             
             self.ready = True
             print("Bot ready. Awaiting inputs.")
-
+            
+            await self.instance_manager.update_instance_statuses()
+            await self.task_manager.start_task_backlog()
         else:
             print("Bot reconnected")
-
+        
     async def on_message(self, message: discord.Message) -> None:
         if message.author.id == self.user.id:
             return

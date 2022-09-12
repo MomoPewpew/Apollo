@@ -2,6 +2,7 @@ import asyncio
 import os
 import shutil
 import random
+from typing import Union
 import boto3
 from botocore.exceptions import ClientError, WaiterError
 
@@ -75,11 +76,31 @@ class Instance_manager(object):
     def get_available_instance(self) -> int:
         if "available" in self.instance_statuses:
             for i in range(len(self.instance_statuses)):
-                status = self.instance_statuses[i]
-                if status == "available":
+                if self.instance_statuses[i] == "available":
                     return i
         else:
             return -1
+    
+    async def get_most_available_instance(self) -> Union[int, bool]:
+        most_favorable_status = "stopping"
+        if "available" in self.instance_statuses: most_favorable_status = "available"
+        elif "running" in self.instance_statuses: most_favorable_status = "running"
+        elif "pending" in self.instance_statuses: most_favorable_status = "pending"
+        elif "stopped" in self.instance_statuses: most_favorable_status = "stopped"
+
+        if most_favorable_status == "running" or most_favorable_status == "pending":
+            while "available" not in self.instance_statuses:
+                if "running" in self.instance_statuses or "pending" in self.instance_statuses:
+                    asyncio.sleep(2)
+                    self.update_instance_statuses()
+                else:
+                    return -1, False
+
+            most_favorable_status = "available"
+
+        for i in range(len(self.instance_statuses)):
+            if self.instance_statuses[i] == most_favorable_status:
+                return i, most_favorable_status != "available"
     
     def all_instances_stopping(self) -> bool:
         return (self.instance_statuses.count("stopping") >= len(self.instance_statuses))
