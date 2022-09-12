@@ -103,7 +103,7 @@ class Instance_manager(object):
                 return i, most_favorable_status != "available"
     
     def all_instances_stopping(self) -> bool:
-        return (self.instance_statuses.count("stopping") >= len(self.instance_statuses))
+        return ((self.instance_statuses.count("stopping") + self.instance_statuses.count("stoppingthenstarting")) >= len(self.instance_statuses))
 
     ##can_boot checks whether it's possible to boot an instance
     def can_boot(self) -> None:
@@ -121,6 +121,7 @@ class Instance_manager(object):
     ##must_boot checks whether booting up a new instance is a neccesity
     def must_boot(self) -> None:
         return not (
+            "stoppingthenstarting" in self.instance_statuses or
             "pending" in self.instance_statuses or
             "running" in self.instance_statuses or
             "available" in self.instance_statuses or
@@ -132,8 +133,9 @@ class Instance_manager(object):
 
         if self.instance_statuses[index] == "stopped" or self.instance_statuses[index] == "stopping":
             if self.instance_statuses[index] == "stopping":
+                self.instance_statuses[index] = "stoppingthenstarting"
                 print(f"Tried to start instance {index} but it was stopping. The process will automatically be resumed after a complete stop.")
-                while self.instance_statuses[index] == "stopping":
+                while "stopping" in self.instance_statuses[index]:
                     await asyncio.sleep(30)
                     await self.update_instance_statuses()
 
@@ -220,7 +222,7 @@ class Instance_manager(object):
                 index = self.get_instance_index(instance_id)
                 state = states[i]
                 self.instance_ips[index] = ip_addresses[i]
-                if not (state == "running" and (self.instance_statuses[index] == "available" or self.instance_statuses[index] == "busy")):
+                if not ((state == "running" and (self.instance_statuses[index] == "available" or self.instance_statuses[index] == "busy")) or (state == "stopping" and self.instance_statuses[index] == "stoppingthenstarting")):
                     self.instance_statuses[index] = state
 
         if "running" in self.instance_statuses:
