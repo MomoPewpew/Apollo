@@ -4,7 +4,8 @@ import shutil
 import random
 from typing import Union
 import boto3
-from botocore.exceptions import ClientError, WaiterError
+from botocore.exceptions import ClientError
+from ..db import db
 
 class Instance_manager(object):
     ec2 = boto3.client('ec2',region_name='eu-west-2')
@@ -138,6 +139,11 @@ class Instance_manager(object):
                 while "stopping" in self.instance_statuses[index]:
                     await asyncio.sleep(30)
                     await self.update_instance_statuses()
+
+                    taskIDs = db.column("SELECT taskID FROM tasks WHERE timeSent is NULL")
+                    if len(taskIDs) < 1:
+                        self.instance_statuses[index] = "stopping"
+                        return
 
             print(f"Trying to start instance {index}")
 
