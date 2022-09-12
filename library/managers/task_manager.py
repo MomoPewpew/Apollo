@@ -81,6 +81,17 @@ class Task_manager(object):
             index = self.bot.instance_manager.get_available_instance()
             if index >= 0:
                 await self.task_loop(index)
+    
+    async def cancel_task(self, taskID: int) -> bool:
+        if db.field("SELECT taskID FROM tasks WHERE taskID = ?",
+            taskID
+        ) == None: return False
+
+        db.execute("UPDATE tasks SET timeReceived = ?, output = ? WHERE taskID = ?",
+            datetime.utcnow(),
+            "Canceled",
+            taskID
+        )
 
     async def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted

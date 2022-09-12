@@ -16,7 +16,8 @@ class Arcane(Cog):
         description = "Convert an image at the provided URL into the animation style of Arcane"
     )
     async def command_arcane(
-        self, interaction: discord.Interaction,
+        self,
+        interaction: discord.Interaction,
         url: str
     ) -> None:
         await self.function_arcane(
