@@ -66,30 +66,36 @@ class Task_manager(object):
     async def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted
         boot_estimate = 45
+        boot_new = False
         await self.bot.instance_manager.update_instance_statuses()
 
         if self.bot.instance_manager.must_boot():
-            return boot_estimate, True
+            queue_estimate = boot_estimate
+            boot_new = True
 
         queue_estimate = -1
 
         queue_estimates = self.get_queue_estimates()
 
-        for index in self.bot.instance_manager.get_active_list():
-            if queue_estimate < queue_estimates[index] or queue_estimate == -1:
-                if self.bot.instance_manager.is_instance_booting(index):
-                    queue_estimate += boot_estimate
-                queue_estimate += queue_estimates[index]
+        if len(self.bot.instance_manager.get_active_list()) < 1:
+            for estimate in queue_estimates:
+                queue_estimate += estimate
+        else:
+            for index in self.bot.instance_manager.get_active_list():
+                if queue_estimate < queue_estimates[index] or queue_estimate == -1:
+                    if self.bot.instance_manager.is_instance_booting(index):
+                        queue_estimate += boot_estimate
+                    queue_estimate += queue_estimates[index]
 
-        if (queue_estimate == -1 or queue_estimate > 120) and self.bot.instance_manager.should_boot():
+        if (queue_estimate == -1 or queue_estimate > 180) and self.bot.instance_manager.should_boot():
             return boot_estimate, True
 
-        return queue_estimate, False
+        return queue_estimate, boot_new
 
     def get_queue_estimates(self) -> list[int]:
-        estimatedTimes = db.record("SELECT estimatedTime FROM tasks WHERE timeReceived is NULL")
-        servers = db.record("SELECT server FROM tasks WHERE timeReceived is NULL")
-        timeSents = db.record("SELECT timeSent FROM tasks WHERE timeReceived is NULL")
+        estimatedTimes = db.column("SELECT estimatedTime FROM tasks WHERE timeReceived is NULL")
+        servers = db.column("SELECT server FROM tasks WHERE timeReceived is NULL")
+        timeSents = db.column("SELECT timeSent FROM tasks WHERE timeReceived is NULL")
 
         queueTimes = []
         estimatedTimesRemaining = []
@@ -97,9 +103,9 @@ class Task_manager(object):
         for append in range(self.bot.instance_manager.get_total_instances()):
             queueTimes.append(0)
 
-        if servers != None:
-            for i in range(len(estimatedTimes)):
-                if i < len(servers):
+        if len(servers) > 0:
+            for i in range(len(servers)):
+                if servers[i] is not None:
                     id = servers[i]
                     if self.bot.instance_manager.is_instance_listed(id):
                         index = self.bot.instance_manager.get_instance_index(id)
@@ -108,17 +114,21 @@ class Task_manager(object):
                 else:
                     estimatedTimesRemaining.append(estimatedTimes[i])
         else:
-            estimatedTimesRemaining = queueTimes
+            for estimatedTime in estimatedTimes:
+                estimatedTimesRemaining.append(estimatedTime)
 
         i = 0
         for taskTime in estimatedTimesRemaining:
-            timeTemp = -1
-            for index in self.bot.instance_manager.get_active_list():
-                if queueTimes[index] < timeTemp or timeTemp == -1:
-                    timeTemp = queueTimes[index]
-                    i = index
-            
-            queueTimes[i] += taskTime
+            if len(self.bot.instance_manager.get_active_list()) < 1:
+                queueTimes[0] += taskTime
+            else:
+                timeTemp = -1
+                for index in self.bot.instance_manager.get_active_list():
+                    if queueTimes[index] < timeTemp or timeTemp == -1:
+                        timeTemp = queueTimes[index]
+                        i = index
+                
+                queueTimes[i] += taskTime
 
         return queueTimes
 

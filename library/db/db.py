@@ -1,5 +1,6 @@
 from os.path import isfile
 from sqlite3 import connect
+from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -32,26 +33,26 @@ def autosave(sched: AsyncIOScheduler) -> None:
 def close() -> None:
     cxn.close()
 
-def field(command: str, *values) -> None:
+def field(command: str, *values) -> Any:
     cur.execute(command, tuple(values))
 
     if (fetch := cur.fetchone()) is not None:
         return fetch[0]
 
-def record(command: str, *values) -> None:
+def column(command: str, *values) -> list[Any]:
+    cur.execute(command, tuple(values))
+
+    return [item[0] for item in cur.fetchall()]
+
+def record(command: str, *values) -> list[Any]:
     cur.execute(command, tuple(values))
 
     return cur.fetchone()
 
-def records(command: str, *values) -> None:
+def records(command: str, *values) -> list[list[Any]]:
     cur.execute(command, tuple(values))
 
     return cur.fetchall()
-
-def column(command: str, *values) -> None:
-    cur.execute(command, tuple(values))
-
-    return [item[0] for item in cur.fetchall()]
 
 def execute(command: str, *values) -> None:
     cur.execute(command, tuple(values))
