@@ -83,15 +83,25 @@ class Task_manager(object):
                 await self.task_loop(index)
     
     async def cancel_task(self, taskID: int) -> bool:
-        if db.field("SELECT taskID FROM tasks WHERE taskID = ? AND timeReceived is NULL",
-            taskID
-        ) == None: return False
-
-        db.execute("UPDATE tasks SET timeReceived = ?, output = ? WHERE taskID = ?",
-            datetime.utcnow(),
-            "Canceled",
+        taskID, server = db.record("SELECT taskID, server FROM tasks WHERE taskID = ? AND timeReceived is NULL",
             taskID
         )
+        if taskID == None: return False
+
+        if server == None:
+            db.execute("UPDATE tasks SET server = ?, timeSent = ?, timeReceived = ?, output = ? WHERE taskID = ?",
+                "None",
+                datetime.utcnow(),
+                datetime.utcnow(),
+                "Canceled",
+                taskID
+            )
+        else:
+            db.execute("UPDATE tasks SET timeReceived = ?, output = ? WHERE taskID = ?",
+                datetime.utcnow(),
+                "Canceled",
+                taskID
+            )
 
         return True
 
