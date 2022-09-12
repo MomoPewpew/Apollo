@@ -254,12 +254,10 @@ class Instance_manager(object):
         command_id = response['Command']['CommandId']
 
         output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
-        print(output["Status"])
         while output["Status"] == "InProgress":
-            print(output["Status"])
             output = self.ssm.get_command_invocation( CommandId=command_id, InstanceId=instance_id)
             await asyncio.sleep(1)
-        print(output["Status"])
+            
         print(output['StandardOutputContent'])
 
     async def download_output(self, index: int) -> None:

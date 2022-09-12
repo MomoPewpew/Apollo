@@ -14,17 +14,17 @@ class Task_manager(object):
         self.bot = bot
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
-        if db.record("SELECT taskID FROM tasks WHERE taskID = 1") == None:
+        if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
             taskID = 1
         else:
-            taskID = db.record("SELECT MAX(taskID) FROM tasks")[0] + 1
+            taskID = db.field("SELECT MAX(taskID) FROM tasks") + 1
 
         returnString = f"Task `{taskID}` will be processed and should be done in `{queue_estimate} seconds`."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
 
-            promptID = db.record("SELECT MAX(promptID) FROM prompts")[0] + 1
+            promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
             promptTags = self.bot.user_manager.get_tags_active_csv(userID)
 
             self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
@@ -55,13 +55,13 @@ class Task_manager(object):
             index = self.bot.instance_manager.get_random_instance()
             if index >= 0:
                 await self.bot.instance_manager.start_ec2(index)
-                await self.send_first_task(index)
+                await self.task_loop(index)
             else:
                 print("Apollo tried to start a new instance even though none was available. Please reach out to a developer.")
         else:
             index = self.bot.instance_manager.get_available_instance()
             if index >= 0:
-                await self.send_first_task(index)
+                await self.task_loop(index)
 
     async def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted
@@ -132,18 +132,18 @@ class Task_manager(object):
 
         return queueTimes
 
-    async def send_first_task(self, index: int) -> None:
-        taskIDs = db.record("SELECT taskID FROM tasks WHERE timeReceived is NULL")
-        if taskIDs == None:
+    async def task_loop(self, index: int) -> None:
+        taskIDs = db.column("SELECT taskID FROM tasks WHERE timeReceived is NULL")
+        if len(taskIDs) < 1:
             self.bot.instance_manager.instance_statuses[index] = "available"
             return
         
         taskID = taskIDs[0]
         self.bot.instance_manager.instance_statuses[index] = "busy"
 
-        instructions = db.record("SELECT instructions FROM tasks WHERE taskID = ?",
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
-        )[0]
+        )
 
         db.execute("UPDATE tasks SET server = ?, timeSent = ? WHERE taskID = ?",
             self.bot.instance_manager.get_instance_id(index),
@@ -155,7 +155,7 @@ class Task_manager(object):
 
         await self.receive_task_output(index, taskID)
 
-        await self.send_first_task(index)
+        await self.task_loop(index)
 
     def send_idle_work(self, index: int) -> None:
         return ##TODO: Make this

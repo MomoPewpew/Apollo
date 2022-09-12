@@ -27,18 +27,18 @@ class User_manager(object):
             return False
 
     def get_tags_active_csv(self, userID: int) -> str:
-        tags = db.record("SELECT promptTagsActive FROM users WHERE userID = ?",
+        tags = db.field("SELECT promptTagsActive FROM users WHERE userID = ?",
             userID
-        )[0]
+        )
         return tags
 
     def get_tags_active(self, userID: int) -> list[str]:
         return self.get_tags_active_csv(userID)[1:-1].split(",")
 
     def get_tags_inactive(self, userID: int) -> list[str]:
-        tags = db.record("SELECT promptTagsInactive FROM users WHERE userID = ?",
+        tags = db.field("SELECT promptTagsInactive FROM users WHERE userID = ?",
             userID
-        )[0]
+        )
         tagsArray = tags[1:-1].split(",")
         return tagsArray
     
