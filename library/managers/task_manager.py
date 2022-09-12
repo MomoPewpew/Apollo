@@ -202,12 +202,11 @@ class Task_manager(object):
             )
             return
 
-        await eval('self.receive_' + receiveType + '(taskID, userID, channelID, file_path, file_name)')
+        embed, file = await eval('self.receive_' + receiveType + '(taskID, file_path, file_name)')
 
-    async def message_requester(self, taskID: int, userID: int, channelID: int, embed: discord.Embed, file: discord.File) -> None:
         await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file)
 
-    async def receive_image(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
+    async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
         embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
@@ -217,9 +216,9 @@ class Task_manager(object):
             taskID
         )
 
-        await self.message_requester(taskID, userID, channelID, embed, file)
+        return embed, file
     
-    async def receive_text(self, taskID: int, userID: int, channelID: int, file_path: str, filename: str) -> None:
+    async def receive_prompt(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
         ##TODO: Read file
         output_txt = ""
 
@@ -230,7 +229,7 @@ class Task_manager(object):
             taskID
         )
 
-        await self.message_requester(taskID, userID, channelID, embed, None)
+        return embed, None
 
 class Delete_button(Button):
     def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int):
