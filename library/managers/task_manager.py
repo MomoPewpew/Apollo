@@ -93,6 +93,8 @@ class Task_manager(object):
             taskID
         )
 
+        return True
+
     async def simulate_server_assignment(self) -> Union[int, bool]:
         ##This function does not actually assign a server. It simply tries to predict what server will be handling the task, how long this will take, and it decides whether a new server will need to be booted
         boot_estimate = 45
@@ -193,9 +195,11 @@ class Task_manager(object):
     async def receive_task_output(self, index: int, taskID: int) -> None:
         await self.bot.instance_manager.download_output(index)
 
-        receiveType, userID, channelID = db.record("SELECT receiveType, userID, channelID FROM tasks WHERE taskID = ?",
+        receiveType, userID, channelID, output = db.record("SELECT receiveType, userID, channelID, output FROM tasks WHERE taskID = ?",
             taskID
         )
+
+        if output == "Canceled": return
 
         db.execute("UPDATE tasks SET timeReceived = ? WHERE taskID = ?",
             datetime.utcnow(),
