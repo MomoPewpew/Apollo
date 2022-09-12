@@ -77,7 +77,9 @@ class Task_manager(object):
 
         for index in self.bot.instance_manager.get_active_list():
             if queue_estimate < queue_estimates[index] or queue_estimate == -1:
-                queue_estimate = queue_estimates[index]
+                if self.bot.instance_manager.is_instance_booting(index):
+                    queue_estimate += boot_estimate
+                queue_estimate += queue_estimates[index]
 
         if (queue_estimate == -1 or queue_estimate > 120) and self.bot.instance_manager.should_boot():
             return boot_estimate, True
@@ -96,9 +98,9 @@ class Task_manager(object):
             queueTimes.append(0)
 
         if servers != None:
-            for i in range(len(servers)):
-                id = servers[i]
-                if id != None:
+            for i in range(len(estimatedTimes)):
+                if i < len(servers):
+                    id = servers[i]
                     if self.bot.instance_manager.is_instance_listed(id):
                         index = self.bot.instance_manager.get_instance_index(id)
 

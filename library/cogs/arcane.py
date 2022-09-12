@@ -27,7 +27,7 @@ class Arcane(Cog):
     async def function_arcane(self, interaction: discord.Interaction, url: str) -> None:
         queue_estimate, boot_new = await self.bot.task_manager.simulate_server_assignment()
 
-        estimated_time = 10
+        estimated_time = 20
 
         instructions = f"python3 /home/ubuntu/Daedalus/daedalus.py --function=arcanegan --sourceURL={url}"
 

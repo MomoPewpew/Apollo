@@ -38,6 +38,9 @@ class Instance_manager(object):
     def is_instance_listed(self, id: str) -> bool:
         return id in self.instance_ids
     
+    def is_instance_booting(self, index: str) -> bool:
+        return (self.instance_statuses[index] == "pending" or self.instance_statuses[index] == "running")
+
     def get_total_instances(self) -> int:
         return len(self.instance_ids)
     
