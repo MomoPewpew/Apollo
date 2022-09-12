@@ -204,17 +204,20 @@ class Task_manager(object):
 
         embed, file = await eval('self.receive_' + receiveType + '(taskID, file_path, file_name)')
 
-        await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file)
+        if file == None:
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed)
+        else:
+            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file)
+
+            db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+                message.embeds[0].image.url,
+                taskID
+            )
 
     async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
         embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
-
-        db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
-            f"attachment://{filename}",
-            taskID
-        )
 
         return embed, file
     
