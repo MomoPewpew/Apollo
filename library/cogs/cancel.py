@@ -19,7 +19,7 @@ class Cancel(Cog):
         interaction: discord.Interaction,
         taskid: int
     ) -> None:
-        if self.bot.task_manager.cancel_task(taskid):
+        if await self.bot.task_manager.cancel_task(taskid):
             await interaction.response.send_message(f"Task `{taskid}` has been canceled.", ephemeral=True)
         else:
             await interaction.response.send_message(f"Task `{taskid}` is not currently ongoing.", ephemeral=True)

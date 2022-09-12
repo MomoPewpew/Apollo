@@ -83,7 +83,7 @@ class Task_manager(object):
                 await self.task_loop(index)
     
     async def cancel_task(self, taskID: int) -> bool:
-        if db.field("SELECT taskID FROM tasks WHERE taskID = ?",
+        if db.field("SELECT taskID FROM tasks WHERE taskID = ? AND timeReceived is NULL",
             taskID
         ) == None: return False
 
