@@ -1,3 +1,4 @@
+import math
 import os
 import time
 from typing import Any, Union
@@ -22,7 +23,10 @@ class Task_manager(object):
         if self.bot.instance_manager.all_instances_stopping():
             returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
         else:
-            returnString = f"Task `{taskID}` will be processed and should be done in `{queue_estimate} seconds`."
+            mins = math.ceil(queue_estimate / 60)
+            if mins > 1: append = "s"
+            else: append = ""
+            returnString = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
