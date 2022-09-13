@@ -42,6 +42,9 @@ class User_manager(object):
         tagsArray = tags[1:-1].split(",")
         return tagsArray
     
+    def get_tags_total(self, userID) -> int:
+        return len(self.get_tags_active(userID)) + len(self.get_tags_inactive(userID))
+
     def add_tag_active(self, userID: int, tag_name: str):
         db.execute("UPDATE users SET promptTagsActive = promptTagsActive || ? WHERE UserID = ?",
             tag_name + ",",

@@ -30,24 +30,27 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
-            await self.show_tag_menu(interaction, userID, f"These are your tags. Checked tags are currently active.")
+            await self.show_tag_menu(interaction, userID, "These are your tags. Checked tags are currently active.")
         elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
-            await interaction.response.send_message( f"Tag names may only include alphanumeric characters and underscores. Such as example_tag_2", ephemeral=True)
+            await self.show_tag_menu(interaction, userID, "Tag names may only include alphanumeric characters and underscores. Such as example_tag_2")
         elif self.bot.user_manager.has_tag(userID, tag_name):
             await self.toggle_tag(interaction, userID, tag_name)
         else:
-            self.bot.user_manager.add_tag_active(userID, tag_name)
-            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been added to your user and turned on.")
+            if self.bot.user_manager.get_tags_total(userID) < 25:
+                self.bot.user_manager.add_tag_active(userID, tag_name)
+                await self.show_tag_menu(interaction, userID, f"The tag {tag_name} has been added to your user and turned on.")
+            else:
+                await self.show_tag_menu(interaction, userID, "You may not have more than 25 tags. Please use /tagdel to make room. Your history with the deleted tag will not be deleted and you can add it back later if you want.")
 
     async def toggle_tag(self, interaction: discord.Interaction, userID: int, tag_name: str) -> None:
         if self.bot.user_manager.has_tag_active(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
             self.bot.user_manager.add_tag_inactive(userID, tag_name)
-            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned off.")
+            await self.show_tag_menu(interaction, userID, f"The tag {tag_name} has been turned off.")
         elif self.bot.user_manager.has_tag_inactive(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
             self.bot.user_manager.add_tag_active(userID, tag_name)
-            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
+            await self.show_tag_menu(interaction, userID, f"The tag {tag_name} has been turned on.")
 
     async def show_tag_menu(self, interaction: discord.Interaction, userID: int, description: str) -> None:
         activeTags = self.bot.user_manager.get_tags_active(userID)
@@ -74,9 +77,9 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
         if self.bot.user_manager.has_tag(userID, tag_name):
             self.bot.user_manager.remove_tag(userID, tag_name)
-            await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been deleted from your user.")
+            await self.show_tag_menu(interaction, userID, f"The tag {tag_name} has been deleted from your user.")
         else:
-            await interaction.response.send_message("You don't have a tag called " + tag_name + ".", ephemeral=True)
+            await interaction.response.send_message(f"You don't have a tag called {tag_name}.", ephemeral=True)
 
     @Cog.listener()
     async def on_ready(self) -> None:
