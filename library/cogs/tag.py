@@ -127,8 +127,7 @@ class tagView(View):
             userID = bot.user_manager.get_user_id(interaction.user)
             bot.user_manager.set_tags(userID, activeTags, inactiveTags)
 
-            activeTags = select.values
-            view = tagView(bot, tags, activeTags)
+            view = tagView(bot, tags, select.values)
             
             await interaction.response.edit_message(content="Your tags have been updated.", view=view)
 
