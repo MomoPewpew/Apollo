@@ -33,14 +33,20 @@ class User_manager(object):
         return tags
 
     def get_tags_active(self, userID: int) -> list[str]:
-        return self.get_tags_active_csv(userID)[1:-1].split(",")
+        tags = self.get_tags_active_csv(userID)
+        if tags == ",":
+            return []
+        else:
+            return tags[1:-1].split(",")
 
     def get_tags_inactive(self, userID: int) -> list[str]:
         tags = db.field("SELECT promptTagsInactive FROM users WHERE userID = ?",
             userID
         )
-        tagsArray = tags[1:-1].split(",")
-        return tagsArray
+        if tags == ",":
+            return []
+        else:
+            return tags[1:-1].split(",")
     
     def get_tags_total(self, userID) -> int:
         return len(self.get_tags_active(userID)) + len(self.get_tags_inactive(userID))

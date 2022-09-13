@@ -30,6 +30,10 @@ class Tag(Cog):
         userID = self.bot.user_manager.get_user_id(interaction.user)
 
         if tag_name == "":
+            if self.bot.user_manager.get_tags_total(userID) < 1:
+                await interaction.response.send_message("You have no tags. Use \"/tag <tag_name>\" to add your first tag.", ephemeral=True)
+                return
+
             await self.show_tag_menu(interaction, userID, "These are your tags. Checked tags are currently active.")
         elif not re.match(r"^[a-zA-Z0-9_]*$", tag_name):
             await self.show_tag_menu(interaction, userID, "Tag names may only include alphanumeric characters and underscores. Such as example_tag_2")
@@ -91,15 +95,11 @@ async def setup(bot) -> None:
 
 class tagView(View):
     def __init__(self, bot: bot, tags: list[str], activeTags: list[str]):
-        self.tags = tags
-        self.activeTags = activeTags
-        self.bot = bot
-
         options = []
         default = False
-        for tag in self.tags:
+        for tag in tags:
             if tag != "":
-                if tag in self.activeTags:
+                if tag in activeTags:
                     default = True
                 else:
                     default = False
@@ -118,15 +118,19 @@ class tagView(View):
             activeTags = ","
             inactiveTags = ","
 
-            for tag in self.tags:
+            for tag in tags:
                 if tag in select.values:
                     activeTags += f"{tag},"
                 else:
                     inactiveTags += f"{tag},"
             
-            userID = self.bot.user_manager.get_user_id(interaction.user)
-            self.bot.user_manager.set_tags(userID, activeTags, inactiveTags)
-            await interaction.response.edit_message(content="Your tags have been updated.")
+            userID = bot.user_manager.get_user_id(interaction.user)
+            bot.user_manager.set_tags(userID, activeTags, inactiveTags)
+
+            activeTags = select.values
+            view = tagView(bot, tags, activeTags)
+            
+            await interaction.response.edit_message(content="Your tags have been updated.", view=view)
 
         select.callback = select_callback
 
