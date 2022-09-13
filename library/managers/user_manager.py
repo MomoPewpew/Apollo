@@ -54,6 +54,19 @@ class User_manager(object):
             userID
         )
     
+    def set_tags(self, userID: int, activeTags: str, inactiveTags: str):
+        db.execute("UPDATE users SET promptTagsActive = ?, promptTagsInactive = ? WHERE UserID = ?",
+            activeTags,
+            inactiveTags,
+            userID
+        )
+    
+    def set_tags_inactive(self, userID: int, tags: str):
+        db.execute("UPDATE users SET promptTagsInactive = ? WHERE UserID = ?",
+            tags + ",",
+            userID
+        )
+    
     def remove_tag(self, userID: int, tag_name: str):
         db.execute("UPDATE users SET promptTagsActive = replace(promptTagsActive, ?, ',') WHERE promptTagsActive LIKE ? AND UserID = ?",
             "," + tag_name + ",",

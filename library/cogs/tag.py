@@ -1,4 +1,5 @@
 import discord
+from discord.ui import Select, View
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
@@ -49,20 +50,13 @@ class Tag(Cog):
             await self.show_tag_menu(interaction, userID, f"The tag " + tag_name + " has been turned on.")
 
     async def show_tag_menu(self, interaction: discord.Interaction, userID: int, description: str) -> None:
-        taglist = description + "\n"
-        
         activeTags = self.bot.user_manager.get_tags_active(userID)
         tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
-        for tag in tags:
-            if tag != "":
-                if tag in activeTags:
-                    taglist += "\n[✓] " + tag
-                else:
-                    taglist += "\n        " + tag
+        view = tagView(self.bot, tags, activeTags)
 
-        await interaction.response.send_message(taglist, ephemeral=True)
-    
+        await interaction.response.send_message(description, ephemeral=True, view=view)
+
     @app_commands.command(
         name="tagdel",
         description = "Delete a tag from your user."
@@ -91,3 +85,48 @@ class Tag(Cog):
 
 async def setup(bot) -> None:
     await bot.add_cog(Tag(bot))
+
+class tagView(View):
+    def __init__(self, bot: bot, tags: list[str], activeTags: list[str]):
+        self.tags = tags
+        self.activeTags = activeTags
+        self.bot = bot
+
+        options = []
+        default = False
+        for tag in self.tags:
+            if tag != "":
+                if tag in self.activeTags:
+                    default = True
+                else:
+                    default = False
+                
+                options.append(discord.SelectOption(label=tag, default=default))
+
+        select = Select(
+            min_values=0,
+            max_values=min(len(tags), 25),
+            placeholder="You have no active tags",
+            options=options,
+            row=0
+        )
+
+        async def select_callback(interaction: discord.Interaction):
+            activeTags = ","
+            inactiveTags = ","
+
+            for tag in self.tags:
+                if tag in select.values:
+                    activeTags += f"{tag},"
+                else:
+                    inactiveTags += f"{tag},"
+            
+            userID = self.bot.user_manager.get_user_id(interaction.user)
+            self.bot.user_manager.set_tags(userID, activeTags, inactiveTags)
+            await interaction.response.edit_message(content="Your tags have been updated.")
+
+        select.callback = select_callback
+
+        super().__init__()
+
+        self.add_item(select)
