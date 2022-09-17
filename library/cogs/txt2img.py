@@ -54,7 +54,7 @@ class txt2img(Cog):
 
         plmsString = " #arg#plms" if plms else ""
 
-        await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
+        await self.bot.task_manager.task_command_main(interaction, 180, "stablediffusion", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
