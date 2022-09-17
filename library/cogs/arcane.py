@@ -26,15 +26,7 @@ class Arcane(Cog):
         )
 
     async def function_arcane(self, interaction: discord.Interaction, url: str) -> None:
-        queue_estimate, boot_new = await self.bot.task_manager.simulate_server_assignment()
-
-        estimated_time = 20
-
-        instructions = f"python3 /home/ubuntu/Daedalus/daedalus.py --function=arcanegan --sourceURL={url}"
-
-        await self.bot.task_manager.respond(interaction, None, None, queue_estimate + estimated_time)
-
-        await self.bot.task_manager.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        await self.bot.task_manager.task_command_main(interaction, 20, f"python3 /home/ubuntu/Daedalus/daedalus.py --function arcanegan --sourceURL {url}")
 
     @Cog.listener()
     async def on_ready(self) -> None:
