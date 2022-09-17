@@ -61,12 +61,12 @@ class Task_manager(object):
 
             await self.task_loop(index)
 
-    async def task_command_main(self, interaction: discord.Interaction, estimated_time: int, instructions: str) -> None:
+    async def task_command_main(self, interaction: discord.Interaction, estimated_time: int, receiveType: str, instructions: str) -> None:
         queue_estimate, boot_new = await self.simulate_server_assignment()
 
         await self.respond(interaction, None, None, queue_estimate + estimated_time)
 
-        await self.add_task("image", interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int, boot_new: bool) -> None:
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",

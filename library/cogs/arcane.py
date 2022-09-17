@@ -26,7 +26,7 @@ class Arcane(Cog):
         )
 
     async def function_arcane(self, interaction: discord.Interaction, url: str) -> None:
-        await self.bot.task_manager.task_command_main(interaction, 20, f"python3 /home/ubuntu/Daedalus/daedalus.py --function arcanegan --sourceURL {url}")
+        await self.bot.task_manager.task_command_main(interaction, 20, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function arcanegan --sourceURL {url}")
 
     @Cog.listener()
     async def on_ready(self) -> None:
