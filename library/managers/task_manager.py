@@ -14,6 +14,13 @@ class Task_manager(object):
     def __init__(self, bot: bot) -> None:
         self.bot = bot
 
+    async def task_command_main(self, interaction: discord.Interaction, estimated_time: int, promptType: str, promptString: int, receiveType: str, instructions: str) -> None:
+        queue_estimate, boot_new = await self.simulate_server_assignment()
+
+        await self.respond(interaction, promptType, promptString, queue_estimate + estimated_time)
+
+        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
             taskID = 1
@@ -60,13 +67,6 @@ class Task_manager(object):
                 await self.bot.instance_manager.start_ec2(index)
 
             await self.task_loop(index)
-
-    async def task_command_main(self, interaction: discord.Interaction, estimated_time: int, receiveType: str, instructions: str) -> None:
-        queue_estimate, boot_new = await self.simulate_server_assignment()
-
-        await self.respond(interaction, None, None, queue_estimate + estimated_time)
-
-        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int, boot_new: bool) -> None:
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",
