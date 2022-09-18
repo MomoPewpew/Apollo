@@ -289,7 +289,7 @@ class Task_manager(object):
         steps = int(self.get_argument_from_instructions(instructions, "ddim_steps"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Task ID: `{taskID}`\nPrompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
 
         view = Stable_diffusion_revision_view(prompt, height, width, seed, scale, steps, plms)
 
