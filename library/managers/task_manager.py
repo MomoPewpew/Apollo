@@ -6,7 +6,7 @@ from ..db import db
 from datetime import datetime
 from .. import bot
 import discord
-from discord.ui import Button
+from discord.ui import Button, View
 from . import prompt_manager
 import ciso8601
 
@@ -19,7 +19,7 @@ class Task_manager(object):
 
         await self.respond(interaction, promptType, promptString, queue_estimate + estimated_time)
 
-        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        #await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
@@ -28,33 +28,40 @@ class Task_manager(object):
             taskID = db.field("SELECT MAX(taskID) FROM tasks") + 1
 
         if self.bot.instance_manager.all_instances_stopping():
-            returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
+            returnString1 = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
         else:
             mins = math.ceil(queue_estimate / 60)
             if mins > 1: append = "s"
             else: append = ""
-            returnString = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
+            returnString1 = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
+
+        returnString = returnString1
 
         if (promptType is not None and promptString is not None):
             userID = self.bot.user_manager.get_user_id(interaction.user)
 
-            promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
+            if db.field("SELECT promptID FROM prompts WHERE promptID = 1") == None:
+                promptID = 1
+            else:
+                promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
+
             promptTags = self.bot.user_manager.get_tags_active_csv(userID)
 
             self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
 
             if (promptTags == ","):
-                returnStrings += f"\nThe prompt \"{promptString}\" was saved to your user but you had no active tags."
+                returnString += f"\nThe prompt `{promptString}` was saved to your history but you had no active tags."
             else:
-                returnStrings += f"\nThe prompt \"{promptString}\" was saved to your user under the tags `" + promptTags[1:-1] + "`"
+                returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`"
             
-            returnString += "\nIf you would like to delete this prompt from your history then press the delete button."
+            returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
 
-            button = Delete_button(self.bot.prompt_manager, promptID)
+            view = View()
+            view.add_item(Prompt_forget_button(self.bot.prompt_manager, promptID, returnString1))
 
-            await interaction.response.send_message(content=returnString, button=button, ephemeral = True)
+            await interaction.response.send_message(content=returnString, view=view, ephemeral=True)
         else:
-            await interaction.response.send_message(content=returnString, ephemeral = True)
+            await interaction.response.send_message(content=returnString, ephemeral=True)
 
     async def start_task_backlog(self):
         db.execute("UPDATE tasks SET server = NULL, timeSent = NULL WHERE timeReceived IS NULL")
@@ -285,12 +292,12 @@ class Task_manager(object):
 
         return embed, None
 
-class Delete_button(Button):
-    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int):
-        super().__init__(label="Delete", style=discord.ButtonStyle.red)
+class Prompt_forget_button(Button):
+    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str):
         self.prompt_manager = prompt_manager
         self.promptID = promptID
+        self.newString = newString
+        super().__init__(label="Forget", style=discord.ButtonStyle.red)
     async def callback(self, interaction: discord.Interaction) -> Any:
         self.prompt_manager.remove_prompt(self.promptID)
-        self.disabled = True
-        interaction.response.send_message(content="This prompt has been deleted.")
+        await interaction.response.edit_message(content=self.newString, view=None)
