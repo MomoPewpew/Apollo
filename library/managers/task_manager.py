@@ -291,7 +291,7 @@ class Task_manager(object):
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
 
-        view = Stable_diffusion_revision_view(prompt, height, width, seed, scale, steps, plms)
+        view = Stable_diffusion_revision_view(self.bot, prompt, height, width, seed, scale, steps, plms)
 
         return embed, file, view
     
@@ -327,6 +327,7 @@ class Prompt_forget_button(Button):
 
 class Stable_diffusion_revision_view(View):
     def __init__(self,
+        bot: bot,
         prompt: str,
         height: int,
         width: int,
@@ -335,13 +336,23 @@ class Stable_diffusion_revision_view(View):
         steps: int,
         plms: bool
     ):
-        buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0, disabled=True)
+        buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0)
         buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0, disabled=True)
         buttonIterate = Button(style=discord.ButtonStyle.red, label="Iterate", emoji="🔀", row=0, disabled=True)
         buttonBatch = Button(style=discord.ButtonStyle.red, label="Batch", emoji="🔣", row=0, disabled=True)
+
+        txt2img = bot.get_cog("txt2img")
         
         async def buttonRetry_callback(interaction: discord.Interaction):
-            pass
+            await txt2img.function_txt2img(interaction,
+                prompt,
+                height,
+                width,
+                None,
+                scale,
+                steps,
+                plms
+            )
 
         async def buttonRevise_callback(interaction: discord.Interaction):
             pass
