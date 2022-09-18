@@ -19,7 +19,7 @@ class Task_manager(object):
 
         await self.respond(interaction, promptType, promptString, queue_estimate + estimated_time)
 
-        #await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
@@ -253,33 +253,56 @@ class Task_manager(object):
             )
             return
 
-        embed, file = await eval('self.receive_' + receiveType + '(taskID, file_path, file_name)')
+        embed, file, view = await eval('self.receive_' + receiveType + '(taskID, file_path, file_name)')
 
         if file == None:
-            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed)
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, view=view)
         else:
-            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file)
+            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file, view=view)
 
             db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
                 message.embeds[0].image.url,
                 taskID
             )
 
-    async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
+    async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
-        return embed, file
+        return embed, file, None
     
-    async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
-        embed = discord.Embed(title="Stable Diffusion", description=f"Task `{taskID}`", color=0x00ff00)
+    async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
-        return embed, file
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
 
-    async def receive_prompt(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File]:
+        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_argument_from_instructions(instructions, "H"))
+        width = int(self.get_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_argument_from_instructions(instructions, "scale"))
+        steps = int(self.get_argument_from_instructions(instructions, "ddim_steps"))
+        plms = "#arg#plms" in instructions
+
+        embed.description = f"Task ID: `{taskID}`\nPrompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
+
+        view = Stable_diffusion_revision_view(prompt, height, width, seed, scale, steps, plms)
+
+        return embed, file, view
+    
+    def get_argument_from_instructions(self, instructions: str, argument: str) -> str:
+        index = instructions.find(f"#arg#{argument}") + len(argument) + 6
+        subString = instructions[index:]
+        index2 = subString.find("#arg#") if "#arg#" in subString else subString.find("\"")
+
+        return subString[0:index2]
+
+    async def receive_prompt(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         ##TODO: Read file
         output_txt = ""
 
@@ -290,14 +313,53 @@ class Task_manager(object):
             taskID
         )
 
-        return embed, None
+        return embed, None, None
 
 class Prompt_forget_button(Button):
-    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str):
+    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str) -> None:
+        super().__init__(label="Forget", style=discord.ButtonStyle.red)
         self.prompt_manager = prompt_manager
         self.promptID = promptID
         self.newString = newString
-        super().__init__(label="Forget", style=discord.ButtonStyle.red)
     async def callback(self, interaction: discord.Interaction) -> Any:
         self.prompt_manager.remove_prompt(self.promptID)
         await interaction.response.edit_message(content=self.newString, view=None)
+
+class Stable_diffusion_revision_view(View):
+    def __init__(self,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        steps: int,
+        plms: bool
+    ):
+        buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0, disabled=True)
+        buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0, disabled=True)
+        buttonIterate = Button(style=discord.ButtonStyle.red, label="Iterate", emoji="🔀", row=0, disabled=True)
+        buttonBatch = Button(style=discord.ButtonStyle.red, label="Batch", emoji="🔣", row=0, disabled=True)
+        
+        async def buttonRetry_callback(interaction: discord.Interaction):
+            pass
+
+        async def buttonRevise_callback(interaction: discord.Interaction):
+            pass
+
+        async def buttonIterate_callback(interaction: discord.Interaction):
+            pass
+
+        async def buttonBatch_callback(interaction: discord.Interaction):
+            pass
+
+        buttonRetry.callback = buttonRetry_callback
+        buttonRevise.callback = buttonRevise_callback
+        buttonIterate.callback = buttonIterate_callback
+        buttonBatch.callback = buttonBatch_callback
+
+        super().__init__()
+
+        self.add_item(buttonRetry)
+        self.add_item(buttonRevise)
+        self.add_item(buttonIterate)
+        self.add_item(buttonBatch)
