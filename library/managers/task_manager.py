@@ -360,7 +360,7 @@ class View_stablediffusion_revision(View):
         buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0)
         buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0)
         buttonIterate = Button(style=discord.ButtonStyle.red, label="Iterate", emoji="🔀", row=0, disabled=True)
-        buttonBatch = Button(style=discord.ButtonStyle.red, label="Batch", emoji="🔣", row=0, disabled=True)
+        buttonBatch = Button(style=discord.ButtonStyle.red, label="Batch", emoji="🔣", row=0)
 
         txt2img = bot.get_cog("txt2img")
         
@@ -383,7 +383,16 @@ class View_stablediffusion_revision(View):
             pass
 
         async def buttonBatch_callback(interaction: discord.Interaction):
-            pass
+            await txt2img.function_txt2img(interaction,
+                prompt,
+                height,
+                width,
+                seed + 1,
+                scale,
+                steps,
+                plms,
+                True
+            )
 
         buttonRetry.callback = buttonRetry_callback
         buttonRevise.callback = buttonRevise_callback
