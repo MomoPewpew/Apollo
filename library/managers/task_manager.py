@@ -303,7 +303,7 @@ class Task_manager(object):
         steps = int(self.get_argument_from_instructions(instructions, "ddim_steps"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`"
 
         view = View_stablediffusion_revision(self.bot, prompt, height, width, seed, scale, steps, plms)
 
@@ -351,7 +351,7 @@ class View_stablediffusion_revision(View):
         plms: bool
     ):
         buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0)
-        buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0, disabled=True)
+        buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0)
         buttonIterate = Button(style=discord.ButtonStyle.red, label="Iterate", emoji="🔀", row=0, disabled=True)
         buttonBatch = Button(style=discord.ButtonStyle.red, label="Batch", emoji="🔣", row=0, disabled=True)
 
@@ -369,7 +369,7 @@ class View_stablediffusion_revision(View):
             )
 
         async def buttonRevise_callback(interaction: discord.Interaction):
-            pass
+            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, steps, plms))
 
         async def buttonIterate_callback(interaction: discord.Interaction):
             pass
@@ -391,7 +391,7 @@ class View_stablediffusion_revision(View):
     
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
-        bot: bot,
+        txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -401,7 +401,7 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
         plms: bool
     ) -> None:
         super().__init__(title="Revise txt2img task")
-        self.bot = bot
+        self.txt2img = txt2img
         self.plms = plms
 
         self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
@@ -416,8 +416,6 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
         self.add_item(self.stepsField)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
-        txt2img = self.bot.get_cog("txt2img")
-        
         prompt = self.promptField.value
 
         pattern1 = re.compile("^[0-9]+x[0-9]+$")
@@ -453,7 +451,7 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
 
         steps = self.stepsField.value
 
-        await txt2img.function_txt2img(interaction,
+        await self.txt2img.function_txt2img(interaction,
             prompt,
             height,
             width,
