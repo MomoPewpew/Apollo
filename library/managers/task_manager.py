@@ -310,11 +310,26 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion Batch", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
-        return embed, file, None
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_argument_from_instructions(instructions, "H"))
+        width = int(self.get_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_argument_from_instructions(instructions, "scale"))
+        plms = "#arg#plms" in instructions
+
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nFirst seed: `{seed}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`"
+
+        view = View_stablediffusion_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
+
+        return embed, file, view
     
     def get_argument_from_instructions(self, instructions: str, argument: str) -> str:
         index = instructions.find(f"#arg#{argument}") + len(argument) + 6
@@ -377,7 +392,7 @@ class View_stablediffusion_revision(View):
             )
 
         async def buttonRevise_callback(interaction: discord.Interaction):
-            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, steps, plms))
+            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
 
         async def buttonIterate_callback(interaction: discord.Interaction):
             pass
@@ -405,7 +420,45 @@ class View_stablediffusion_revision(View):
         self.add_item(buttonRevise)
         self.add_item(buttonIterate)
         self.add_item(buttonBatch)
-    
+
+class View_stablediffusion_revision_batch(View):
+    def __init__(self,
+        bot: bot,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool
+    ):
+        buttonRetry = Button(style=discord.ButtonStyle.red, label="Retry", emoji="🔁", row=0)
+        buttonRevise = Button(style=discord.ButtonStyle.red, label="Revise", emoji="✏", row=0)
+
+        txt2img = bot.get_cog("txt2img")
+        
+        async def buttonRetry_callback(interaction: discord.Interaction):
+            await txt2img.function_txt2img(interaction,
+                prompt,
+                height,
+                width,
+                None,
+                scale,
+                15,
+                plms,
+                True
+            )
+
+        async def buttonRevise_callback(interaction: discord.Interaction):
+            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, 15, plms, True))
+
+        buttonRetry.callback = buttonRetry_callback
+        buttonRevise.callback = buttonRevise_callback
+
+        super().__init__()
+
+        self.add_item(buttonRetry)
+        self.add_item(buttonRevise)
+
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
         txt2img,
@@ -415,11 +468,13 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
         seed: int,
         scale: float,
         steps: int,
-        plms: bool
+        plms: bool,
+        batch: bool
     ) -> None:
         super().__init__(title="Revise txt2img task")
         self.txt2img = txt2img
         self.plms = plms
+        self.batch = batch
 
         self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
         self.add_item(self.promptField)
@@ -429,8 +484,9 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
         self.add_item(self.seedField)
         self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
         self.add_item(self.scaleField)
-        self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
-        self.add_item(self.stepsField)
+        if not self.batch:
+            self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
+            self.add_item(self.stepsField)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         prompt = self.promptField.value
@@ -462,11 +518,14 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
 
         scale = float(scaleString)
 
-        if not pattern2.match(self.stepsField.value):
-            await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
-            return
+        if self.batch:
+            steps = 15
+        else:
+            if not pattern2.match(self.stepsField.value):
+                await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
+                return
 
-        steps = self.stepsField.value
+            steps = self.stepsField.value
 
         await self.txt2img.function_txt2img(interaction,
             prompt,
@@ -476,7 +535,7 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
             scale,
             steps,
             self.plms,
-            False
+            self.batch
         )
 
         return await super().on_submit(interaction)
