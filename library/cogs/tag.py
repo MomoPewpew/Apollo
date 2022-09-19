@@ -60,7 +60,7 @@ class Tag(Cog):
         activeTags = self.bot.user_manager.get_tags_active(userID)
         tags = sorted(activeTags + self.bot.user_manager.get_tags_inactive(userID), key=str.lower)
 
-        view = tagView(self.bot, tags, activeTags)
+        view = View_tag(self.bot, tags, activeTags)
 
         await interaction.response.send_message(description, ephemeral=True, view=view)
 
@@ -93,7 +93,7 @@ class Tag(Cog):
 async def setup(bot) -> None:
     await bot.add_cog(Tag(bot))
 
-class tagView(View):
+class View_tag(View):
     def __init__(self, bot: bot, tags: list[str], activeTags: list[str]):
         options = []
         default = False
@@ -127,7 +127,7 @@ class tagView(View):
             userID = bot.user_manager.get_user_id(interaction.user)
             bot.user_manager.set_tags(userID, activeTags, inactiveTags)
 
-            view = tagView(bot, tags, select.values)
+            view = View_tag(bot, tags, select.values)
             
             await interaction.response.edit_message(content="Your tags have been updated.", view=view)
 

@@ -48,7 +48,8 @@ class txt2img(Cog):
         plms: bool
     ) -> None:
         if height %64 != 0 or width %64 != 0:
-            await interaction.response.send_message("The height and width must be a multiple of 64", ephemeral=True)
+            await interaction.response.send_message(f"The height and width must be a multiple of 64. Your prompt was `{prompt}`", ephemeral=True)
+            return
 
         seed = int(random.randrange(4294967294)) if seed is None else seed
 

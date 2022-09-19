@@ -1,5 +1,7 @@
+from logging import PlaceHolder
 import math
 import os
+import re
 import time
 from typing import Any, Union
 from ..db import db
@@ -69,7 +71,7 @@ class Task_manager(object):
                 returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
 
                 view = View()
-                view.add_item(Prompt_forget_button(self.bot.prompt_manager, promptID, returnString1))
+                view.add_item(Button_forget_prompt(self.bot.prompt_manager, promptID, returnString1))
 
                 await interaction.response.send_message(content=returnString, view=view, ephemeral=True)
         else:
@@ -303,7 +305,7 @@ class Task_manager(object):
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nSteps: `{steps}`\nPLMS: `{plms}`"
 
-        view = Stable_diffusion_revision_view(self.bot, prompt, height, width, seed, scale, steps, plms)
+        view = View_stablediffusion_revision(self.bot, prompt, height, width, seed, scale, steps, plms)
 
         return embed, file, view
     
@@ -327,7 +329,7 @@ class Task_manager(object):
 
         return embed, None, None
 
-class Prompt_forget_button(Button):
+class Button_forget_prompt(Button):
     def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str) -> None:
         super().__init__(label="Forget", style=discord.ButtonStyle.red)
         self.prompt_manager = prompt_manager
@@ -337,7 +339,7 @@ class Prompt_forget_button(Button):
         self.prompt_manager.remove_prompt(self.promptID)
         await interaction.response.edit_message(content=self.newString, view=None)
 
-class Stable_diffusion_revision_view(View):
+class View_stablediffusion_revision(View):
     def __init__(self,
         bot: bot,
         prompt: str,
@@ -386,3 +388,79 @@ class Stable_diffusion_revision_view(View):
         self.add_item(buttonRevise)
         self.add_item(buttonIterate)
         self.add_item(buttonBatch)
+    
+class Modal_stablediffusion_revise(discord.ui.Modal):
+    def __init__(self,
+        bot: bot,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        steps: int,
+        plms: bool
+    ) -> None:
+        super().__init__(title="Revise txt2img task")
+        self.bot = bot
+        self.plms = plms
+
+        self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
+        self.add_item(self.promptField)
+        self.dimensionsField = discord.ui.TextInput(label="Dimensions (width x height)", style=discord.TextStyle.short, placeholder="Integer x Integer (multiples of  64)", default=f"{width}x{height}", required=True)
+        self.add_item(self.dimensionsField)
+        self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
+        self.add_item(self.seedField)
+        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
+        self.add_item(self.scaleField)
+        self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
+        self.add_item(self.stepsField)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        txt2img = self.bot.get_cog("txt2img")
+        
+        prompt = self.promptField.value
+
+        pattern1 = re.compile("^[0-9]+x[0-9]+$")
+        if not pattern1.match(self.dimensionsField.value):
+            await interaction.response.send_message("Dimension field must match format [integer]x[integer]", ephemeral=True)
+            return
+
+        index = self.dimensionsField.value.find("x")
+        width = int(self.dimensionsField.value[:index])
+        height = int(self.dimensionsField.value[(index+1):])
+
+        pattern2 = re.compile("^[0-9]+$")
+        if self.seedField.value != "" and not pattern2.match(self.seedField.value):
+            await interaction.response.send_message("Seed must be a positive integer or empty", ephemeral=True)
+            return
+
+        seed = None if self.seedField.value == "" else int(self.seedField.value)
+
+        scaleString = self.scaleField.value
+
+        if pattern2.match(scaleString): scaleString += ".0"
+
+        pattern3 = re.compile("^[0-9]+\.[0-9]+$")
+        if not pattern3.match(scaleString):
+            await interaction.response.send_message("Scale must be a float", ephemeral=True)
+            return
+
+        scale = float(scaleString)
+
+        if not pattern2.match(self.stepsField.value):
+            await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
+            return
+
+        steps = self.stepsField.value
+
+        await txt2img.function_txt2img(interaction,
+            prompt,
+            height,
+            width,
+            seed,
+            scale,
+            steps,
+            self.plms
+        )
+
+        return await super().on_submit(interaction)
