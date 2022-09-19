@@ -308,6 +308,13 @@ class Task_manager(object):
         view = View_stablediffusion_revision(self.bot, prompt, height, width, seed, scale, steps, plms)
 
         return embed, file, view
+
+    async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        return embed, file, None
     
     def get_argument_from_instructions(self, instructions: str, argument: str) -> str:
         index = instructions.find(f"#arg#{argument}") + len(argument) + 6
@@ -365,7 +372,8 @@ class View_stablediffusion_revision(View):
                 None,
                 scale,
                 steps,
-                plms
+                plms,
+                False
             )
 
         async def buttonRevise_callback(interaction: discord.Interaction):
@@ -458,7 +466,8 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
             seed,
             scale,
             steps,
-            self.plms
+            self.plms,
+            False
         )
 
         return await super().on_submit(interaction)

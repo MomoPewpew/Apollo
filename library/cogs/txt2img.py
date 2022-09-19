@@ -24,7 +24,8 @@ class txt2img(Cog):
         seed: int = None,
         scale: float = 7.5,
         steps: int = 50,
-        plms: bool = True
+        plms: bool = True,
+        batch: bool = False
     ) -> None:
         await self.function_txt2img(
             interaction,
@@ -34,7 +35,8 @@ class txt2img(Cog):
             seed,
             scale,
             steps,
-            plms
+            plms,
+            batch
         )
 
     async def function_txt2img(self,
@@ -45,7 +47,8 @@ class txt2img(Cog):
         seed: int,
         scale: float,
         steps: int,
-        plms: bool
+        plms: bool,
+        batch: bool
     ) -> None:
         if height %64 != 0 or width %64 != 0:
             await interaction.response.send_message(f"The height and width must be a multiple of 64. Your prompt was `{prompt}`", ephemeral=True)
@@ -54,8 +57,10 @@ class txt2img(Cog):
         seed = int(random.randrange(4294967294)) if seed is None else seed
 
         plmsString = " #arg#plms" if plms else ""
-
-        await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
+        if batch:
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgGrid --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString}\"")
+        else:
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
