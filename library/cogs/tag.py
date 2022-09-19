@@ -114,7 +114,7 @@ class View_tag(View):
             row=0
         )
 
-        async def select_callback(interaction: discord.Interaction):
+        async def select_callback(interaction: discord.Interaction) -> None:
             activeTags = ","
             inactiveTags = ","
 

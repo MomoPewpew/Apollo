@@ -260,7 +260,7 @@ class Task_manager(object):
                 fileCount += 1
 
         if fileCount != 1:
-            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Something went wrong with task {taskID}")
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Something went wrong with task {taskID}.")
             db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
                 "Error",
                 taskID
@@ -270,9 +270,9 @@ class Task_manager(object):
         embed, file, view = await eval('self.receive_' + receiveType + '(taskID, file_path, file_name)')
 
         if file == None:
-            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, view=view)
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, view=view)
         else:
-            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`",embed=embed, file=file, view=view)
+            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
 
             db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
                 message.embeds[0].image.url,
@@ -303,7 +303,7 @@ class Task_manager(object):
         steps = int(self.get_argument_from_instructions(instructions, "ddim_steps"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
         view = View_stablediffusion_revision(self.bot, prompt, height, width, seed, scale, steps, plms)
 
@@ -325,7 +325,7 @@ class Task_manager(object):
         scale = float(self.get_argument_from_instructions(instructions, "scale"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nFirst seed: `{seed}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nFirst seed: `{seed}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
         view = View_stablediffusion_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
 
@@ -357,6 +357,7 @@ class Button_forget_prompt(Button):
         self.prompt_manager = prompt_manager
         self.promptID = promptID
         self.newString = newString
+
     async def callback(self, interaction: discord.Interaction) -> Any:
         self.prompt_manager.remove_prompt(self.promptID)
         await interaction.response.edit_message(content=self.newString, view=None)
@@ -379,7 +380,7 @@ class View_stablediffusion_revision(View):
 
         txt2img = bot.get_cog("txt2img")
         
-        async def buttonRetry_callback(interaction: discord.Interaction):
+        async def buttonRetry_callback(interaction: discord.Interaction) -> None:
             await txt2img.function_txt2img(interaction,
                 prompt,
                 height,
@@ -391,18 +392,18 @@ class View_stablediffusion_revision(View):
                 False
             )
 
-        async def buttonRevise_callback(interaction: discord.Interaction):
+        async def buttonRevise_callback(interaction: discord.Interaction) -> None:
             await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
 
-        async def buttonIterate_callback(interaction: discord.Interaction):
+        async def buttonIterate_callback(interaction: discord.Interaction) -> None:
             pass
 
-        async def buttonBatch_callback(interaction: discord.Interaction):
+        async def buttonBatch_callback(interaction: discord.Interaction) -> None:
             await txt2img.function_txt2img(interaction,
                 prompt,
                 height,
                 width,
-                seed + 1,
+                None,
                 scale,
                 steps,
                 plms,
@@ -436,7 +437,7 @@ class View_stablediffusion_revision_batch(View):
 
         txt2img = bot.get_cog("txt2img")
         
-        async def buttonRetry_callback(interaction: discord.Interaction):
+        async def buttonRetry_callback(interaction: discord.Interaction) -> None:
             await txt2img.function_txt2img(interaction,
                 prompt,
                 height,
@@ -448,16 +449,42 @@ class View_stablediffusion_revision_batch(View):
                 True
             )
 
-        async def buttonRevise_callback(interaction: discord.Interaction):
+        async def buttonRevise_callback(interaction: discord.Interaction) -> None:
             await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, 15, plms, True))
 
         buttonRetry.callback = buttonRetry_callback
         buttonRevise.callback = buttonRevise_callback
 
+        optionsUpscale = []
+
+        for n in range(9):
+            optionsUpscale.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n))
+
+        selectUpscale = discord.ui.Select(
+            placeholder="Upscale",
+            options=optionsUpscale,
+            row=1
+        )
+
+        async def upscale_callback(interaction: discord.Interaction) -> None:
+            await txt2img.function_txt2img(interaction,
+                prompt,
+                height,
+                width,
+                seed + int(selectUpscale.values[0]),
+                scale,
+                50,
+                plms,
+                False
+            )
+
+        selectUpscale.callback = upscale_callback
+
         super().__init__()
 
         self.add_item(buttonRetry)
         self.add_item(buttonRevise)
+        self.add_item(selectUpscale)
 
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
