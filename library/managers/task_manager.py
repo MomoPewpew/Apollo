@@ -404,36 +404,11 @@ class View_stablediffusion_revision_batch(View):
     ):
         txt2img = bot.get_cog("txt2img")
 
-        optionsUpscale = []
-
-        for n in range(9):
-            optionsUpscale.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n))
-
-        selectUpscale = discord.ui.Select(
-            placeholder="Upscale",
-            options=optionsUpscale,
-            row=1
-        )
-
-        async def upscale_callback(interaction: discord.Interaction) -> None:
-            await txt2img.function_txt2img(interaction,
-                prompt,
-                height,
-                width,
-                seed + int(selectUpscale.values[0]),
-                scale,
-                50,
-                plms,
-                False
-            )
-
-        selectUpscale.callback = upscale_callback
-
         super().__init__(timeout=None)
 
         self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, None, plms, True))
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, None, plms, True))
-        self.add_item(selectUpscale)
+        self.add_item(Select_txt2img_upscale(txt2img, prompt, height, width, seed, scale, plms))
 
 class Button__txt2img_retry(Button):
     def __init__(self,
@@ -466,6 +441,7 @@ class Button__txt2img_retry(Button):
             self.plms,
             self.batch
         )
+        return await super().callback(interaction)
 
 class Button__txt2img_revise(Button):
     def __init__(self,
@@ -504,6 +480,7 @@ class Button__txt2img_revise(Button):
                 self.batch
             )
         )
+        return await super().callback(interaction)
 
 class Button__txt2img_iterate(Button):
     def __init__(self
@@ -511,7 +488,7 @@ class Button__txt2img_iterate(Button):
         super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="🔀", row=0, custom_id="button_txt2img_iterate", disabled=True)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
-        pass
+        return await super().callback(interaction)
 
 class Button__txt2img_batch(Button):
     def __init__(self,
@@ -521,7 +498,7 @@ class Button__txt2img_batch(Button):
         scale: float,
         plms: bool,
     ) -> None:
-        super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_txt2img_retry")
+        super().__init__(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0, custom_id="button_txt2img_batch")
         self.txt2img = txt2img
         self.prompt = prompt
         self.imgHeight = height
@@ -540,6 +517,45 @@ class Button__txt2img_batch(Button):
             self.plms,
             True
         )
+        return await super().callback(interaction)
+
+class Select_txt2img_upscale(discord.ui.Select):
+    def __init__(self,
+        txt2img,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool
+    ) -> None:
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.seed = seed
+        self.scale = scale
+        self.plms = plms
+
+        options = []
+
+        for n in range(9):
+            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n))
+
+        super().__init__(custom_id="select_txt2img_upscale", placeholder="Upscale", options=options, row=1)
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.txt2img.function_txt2img(interaction,
+            self.prompt,
+            self.imgHeight,
+            self.imgWidth,
+            self.seed + int(self.values[0]),
+            self.scale,
+            50,
+            self.plms,
+            False
+        )
+        return await super().callback(interaction)
 
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
