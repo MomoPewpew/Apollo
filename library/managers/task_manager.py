@@ -284,7 +284,7 @@ class Task_manager(object):
         return embed, file, None
     
     async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion", color=discord.Color.dark_grey)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -307,7 +307,7 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion Batch", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion Batch", color=discord.Color.dark_grey)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -325,6 +325,28 @@ class Task_manager(object):
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nFirst seed: `{seed}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
         view = View_stablediffusion_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
+
+        return embed, file, view
+
+    async def receive_stablediffusion_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion Variations", color=discord.Color.dark_grey)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_argument_from_instructions(instructions, "H"))
+        width = int(self.get_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_argument_from_instructions(instructions, "scale"))
+        plms = "#arg#plms" in instructions
+
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nOriginal scale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+
+        view = View_stablediffusion_revision_variations(self.bot, prompt, height, width, seed, scale, plms)
 
         return embed, file, view
     
@@ -391,6 +413,7 @@ class View_stablediffusion_revision(View):
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
         self.add_item(Button__txt2img_iterate())
         self.add_item(Button__txt2img_batch(txt2img, prompt, height, width, scale, plms))
+        self.add_item(Button__txt2img_variations(txt2img, prompt, height, width, seed, scale, plms))
 
 class View_stablediffusion_revision_batch(View):
     def __init__(self,
@@ -408,7 +431,24 @@ class View_stablediffusion_revision_batch(View):
 
         self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, None, plms, True))
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, None, plms, True))
-        self.add_item(Select_txt2img_upscale(txt2img, prompt, height, width, seed, scale, plms))
+        self.add_item(Select_txt2img_batch_upscale(txt2img, prompt, height, width, seed, scale, plms))
+        self.add_item(Select_txt2img_variations(txt2img, prompt, height, width, seed, scale, plms))
+
+class View_stablediffusion_revision_variations(View):
+    def __init__(self,
+        bot: bot,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool
+    ):
+        txt2img = bot.get_cog("txt2img")
+
+        super().__init__(timeout=None)
+
+        self.add_item(Select_txt2img_variations_upscale(txt2img, prompt, height, width, seed, scale, plms))
 
 class Button__txt2img_retry(Button):
     def __init__(self,
@@ -485,7 +525,7 @@ class Button__txt2img_revise(Button):
 class Button__txt2img_iterate(Button):
     def __init__(self
     ) -> None:
-        super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="🔀", row=0, custom_id="button_txt2img_iterate", disabled=True)
+        super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate", disabled=True)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         return await super().callback(interaction)
@@ -519,7 +559,36 @@ class Button__txt2img_batch(Button):
         )
         return await super().callback(interaction)
 
-class Select_txt2img_upscale(discord.ui.Select):
+class Button__txt2img_variations(Button):
+    def __init__(self,
+        txt2img, prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool,
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Variations", emoji="🔢", row=0, custom_id="button_txt2img_variations")
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.seed = seed
+        self.scale = scale
+        self.plms = plms
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.txt2img.function_txt2img_variations(interaction,
+            self.prompt,
+            self.imgHeight,
+            self.imgWidth,
+            self.seed,
+            self.scale,
+            self.plms
+        )
+        return await super().callback(interaction)
+
+class Select_txt2img_batch_upscale(discord.ui.Select):
     def __init__(self,
         txt2img,
         prompt: str,
@@ -540,9 +609,9 @@ class Select_txt2img_upscale(discord.ui.Select):
         options = []
 
         for n in range(9):
-            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n))
+            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n, emoji="↔"))
 
-        super().__init__(custom_id="select_txt2img_upscale", placeholder="Upscale", options=options, row=1)
+        super().__init__(custom_id="select_txt2img_batch_upscale", placeholder="↔ Upscale", options=options, row=1)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2img.function_txt2img(interaction,
@@ -551,6 +620,82 @@ class Select_txt2img_upscale(discord.ui.Select):
             self.imgWidth,
             self.seed + int(self.values[0]),
             self.scale,
+            50,
+            self.plms,
+            False
+        )
+        return await super().callback(interaction)
+
+class Select_txt2img_variations(discord.ui.Select):
+    def __init__(self,
+        txt2img,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool
+    ) -> None:
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.seed = seed
+        self.scale = scale
+        self.plms = plms
+
+        options = []
+
+        for n in range(9):
+            options.append(discord.SelectOption(label=f"Variations on image {n + 1}", value=n, emoji="🔢"))
+
+        super().__init__(custom_id="select_txt2img_variations", placeholder="🔢 Variations", options=options, row=2)
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.txt2img.function_txt2img_variations(interaction,
+            self.prompt,
+            self.imgHeight,
+            self.imgWidth,
+            self.seed + int(self.values[0]),
+            self.scale,
+            self.plms
+        )
+        return await super().callback(interaction)
+
+class Select_txt2img_variations_upscale(discord.ui.Select):
+    def __init__(self,
+        txt2img,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        plms: bool
+    ) -> None:
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.seed = seed
+        self.scale = scale
+        self.plms = plms
+        
+        factors = [0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.3, 1.4, 1.5]
+
+        options = []
+
+        for n in range(9):
+            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=factors[n], emoji="↔"))
+
+        super().__init__(custom_id="select_txt2img_variations_upscale", placeholder="↔ Upscale", options=options, row=1)
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.txt2img.function_txt2img(interaction,
+            self.prompt,
+            self.imgHeight,
+            self.imgWidth,
+            self.seed,
+            self.scale * float(self.values[0]),
             50,
             self.plms,
             False
