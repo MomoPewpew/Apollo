@@ -21,7 +21,7 @@ class Task_manager(object):
 
         await self.respond(interaction, promptType, promptString, queue_estimate + estimated_time)
 
-        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        #await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
@@ -70,10 +70,7 @@ class Task_manager(object):
                 
                 returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
 
-                view = View(timeout=None)
-                view.add_item(Button_forget_prompt(self.bot.prompt_manager, promptID, returnString1))
-
-                await interaction.response.send_message(content=returnString, view=view, ephemeral=True)
+                await interaction.response.send_message(content=returnString, view=View_forget_prompt(self.bot.prompt_manager, promptID, returnString1), ephemeral=True)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
 
@@ -350,6 +347,11 @@ class Task_manager(object):
         )
 
         return embed, None, None
+
+class View_forget_prompt(View):
+    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str):
+        super().__init__(timeout=None)
+        self.add_item(Button_forget_prompt(prompt_manager, promptID, newString))
 
 class Button_forget_prompt(Button):
     def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str) -> None:
