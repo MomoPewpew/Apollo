@@ -384,11 +384,7 @@ class View_stablediffusion_revision(View):
         plms: bool
     ):
         txt2img = bot.get_cog("txt2img")
-        buttonIterate = Button(style=discord.ButtonStyle.grey, label="Iterate", emoji="🔀", row=0, disabled=True)
         buttonBatch = Button(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0)
-
-        async def buttonIterate_callback(interaction: discord.Interaction) -> None:
-            pass
 
         async def buttonBatch_callback(interaction: discord.Interaction) -> None:
             await txt2img.function_txt2img(interaction,
@@ -402,14 +398,13 @@ class View_stablediffusion_revision(View):
                 True
             )
 
-        buttonIterate.callback = buttonIterate_callback
         buttonBatch.callback = buttonBatch_callback
 
         super().__init__(timeout=None)
 
         self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
-        self.add_item(buttonIterate)
+        self.add_item(Button__txt2img_iterate())
         self.add_item(buttonBatch)
 
 class View_stablediffusion_revision_batch(View):
@@ -474,6 +469,7 @@ class Button__txt2img_retry(Button):
         self.steps = steps
         self.plms = plms
         self.batch = batch
+
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2img.function_txt2img(interaction,
             self.prompt,
@@ -508,6 +504,7 @@ class Button__txt2img_revise(Button):
         self.steps = steps
         self.plms = plms
         self.batch = batch
+
     async def callback(self, interaction: discord.Interaction) -> Any:
         await interaction.response.send_modal(
             Modal_stablediffusion_revise(
@@ -522,6 +519,14 @@ class Button__txt2img_revise(Button):
                 self.batch
             )
         )
+
+class Button__txt2img_iterate(Button):
+    def __init__(self
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="🔀", row=0, custom_id="button_txt2img_iterate", disabled=True)
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        pass
 
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
