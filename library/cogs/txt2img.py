@@ -58,9 +58,9 @@ class txt2img(Cog):
 
         plmsString = " #arg#plms" if plms else ""
         if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgGrid --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgGrid --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString}\"")
         else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
 
     async def function_txt2img_variations(self,
         interaction: discord.Interaction,
@@ -72,7 +72,7 @@ class txt2img(Cog):
     ) -> None:
         plmsString = " #arg#plms" if plms else ""
 
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString}\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:

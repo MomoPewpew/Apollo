@@ -277,13 +277,22 @@ class Task_manager(object):
             )
 
     async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Image", description=f"Task `{taskID}`", color=0x00ff00)
+        embed = discord.Embed(title="Image", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        function = self.get_argument_from_instructions(instructions, "function")
+        sourceURL = self.get_argument_from_instructions(instructions, "sourceURL")
+
+        embed.description = f"Function: `{function}`\nSource url: `{sourceURL}"
+
         return embed, file, None
     
-    async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+    async def receive_stablediffusion_txt2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Stable Diffusion txt2img", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
@@ -292,21 +301,21 @@ class Task_manager(object):
             taskID
         )
 
-        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
-        height = int(self.get_argument_from_instructions(instructions, "H"))
-        width = int(self.get_argument_from_instructions(instructions, "W"))
-        seed = int(self.get_argument_from_instructions(instructions, "seed"))
-        scale = float(self.get_argument_from_instructions(instructions, "scale"))
-        steps = int(self.get_argument_from_instructions(instructions, "ddim_steps"))
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
+        width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
+        steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
-        view = View_stablediffusion_revision(self.bot, prompt, height, width, seed, scale, steps, plms)
+        view = View_stablediffusion_txt2img_revision_single(self.bot, prompt, height, width, seed, scale, steps, plms)
 
         return embed, file, view
 
-    async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+    async def receive_stablediffusion_txt2img_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
@@ -315,20 +324,20 @@ class Task_manager(object):
             taskID
         )
 
-        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
-        height = int(self.get_argument_from_instructions(instructions, "H"))
-        width = int(self.get_argument_from_instructions(instructions, "W"))
-        seed = int(self.get_argument_from_instructions(instructions, "seed"))
-        scale = float(self.get_argument_from_instructions(instructions, "scale"))
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
+        width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
-        view = View_stablediffusion_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
+        view = View_stablediffusion_txt2img_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
 
         return embed, file, view
 
-    async def receive_stablediffusion_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+    async def receive_stablediffusion_txt2img_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
@@ -337,22 +346,51 @@ class Task_manager(object):
             taskID
         )
 
-        prompt = self.get_argument_from_instructions(instructions, "prompt")[4:-5]
-        height = int(self.get_argument_from_instructions(instructions, "H"))
-        width = int(self.get_argument_from_instructions(instructions, "W"))
-        seed = int(self.get_argument_from_instructions(instructions, "seed"))
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
+        width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
-        view = View_stablediffusion_revision_variations(self.bot, prompt, height, width, seed, plms)
+        view = View_stablediffusion_txt2img_revision_variations(self.bot, prompt, height, width, seed, plms)
 
         return embed, file, view
-    
-    def get_argument_from_instructions(self, instructions: str, argument: str) -> str:
+
+    async def receive_stablediffusion_img2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion img2img", color=0x00ff00)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        init_img_url = self.get_encoded_argument_from_instructions(instructions, "init_img")
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
+        strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
+        steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
+
+        embed.description = f"Prompt: `{prompt}`\nInit img url: `{init_img_url}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `Stable Diffusion 1.4`"
+
+        view = View_stablediffusion_img2img_revision_single(self.bot, prompt, init_img_url, seed, scale, strength, steps)
+
+        return embed, file, view
+
+    def get_encoded_argument_from_instructions(self, instructions: str, argument: str) -> str:
         index = instructions.find(f"#arg#{argument}") + len(argument) + 6
         subString = instructions[index:]
         index2 = subString.find("#arg#") if "#arg#" in subString else subString.find("\"")
+
+        return subString[0:index2]
+
+    def get_argument_from_instructions(self, instructions: str, argument: str) -> str:
+        index = instructions.find(f"--{argument}") + len(argument) + 3
+        subString = instructions[index:]
+        index2 = subString.find(" ") if " " in subString else len(subString)
 
         return subString[0:index2]
 
@@ -393,7 +431,7 @@ class Button_forget_prompt(Button):
         self.prompt_manager.remove_prompt(self.promptID)
         await interaction.response.edit_message(content=self.newString, view=None)
 
-class View_stablediffusion_revision(View):
+class View_stablediffusion_txt2img_revision_single(View):
     def __init__(self,
         bot: bot,
         prompt: str,
@@ -414,7 +452,7 @@ class View_stablediffusion_revision(View):
         self.add_item(Button__txt2img_batch(txt2img, prompt, height, width, scale, plms))
         self.add_item(Button__txt2img_variations(txt2img, prompt, height, width, seed, plms))
 
-class View_stablediffusion_revision_batch(View):
+class View_stablediffusion_txt2img_revision_batch(View):
     def __init__(self,
         bot: bot,
         prompt: str,
@@ -433,7 +471,7 @@ class View_stablediffusion_revision_batch(View):
         self.add_item(Select_txt2img_batch_upscale(txt2img, prompt, height, width, seed, scale, plms))
         self.add_item(Select_txt2img_variations(txt2img, prompt, height, width, seed, plms))
 
-class View_stablediffusion_revision_variations(View):
+class View_stablediffusion_txt2img_revision_variations(View):
     def __init__(self,
         bot: bot,
         prompt: str,
@@ -447,6 +485,23 @@ class View_stablediffusion_revision_variations(View):
         super().__init__(timeout=None)
 
         self.add_item(Select_txt2img_variations_upscale(txt2img, prompt, height, width, seed, plms))
+
+class View_stablediffusion_img2img_revision_single(View):
+    def __init__(self,
+        bot: bot,
+        prompt: str,
+        init_img_url: str,
+        seed: int,
+        scale: float,
+        strength: float,
+        steps: int
+    ):
+        txt2img = bot.get_cog("txt2img")
+
+        super().__init__(timeout=None)
+
+        #self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
+        #self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
 
 class Button__txt2img_retry(Button):
     def __init__(self,
