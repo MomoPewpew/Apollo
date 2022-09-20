@@ -322,7 +322,7 @@ class Task_manager(object):
         scale = float(self.get_argument_from_instructions(instructions, "scale"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nFirst seed: `{seed}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
         view = View_stablediffusion_revision_batch(self.bot, prompt, height, width, seed, scale, plms)
 
@@ -341,12 +341,11 @@ class Task_manager(object):
         height = int(self.get_argument_from_instructions(instructions, "H"))
         width = int(self.get_argument_from_instructions(instructions, "W"))
         seed = int(self.get_argument_from_instructions(instructions, "seed"))
-        scale = float(self.get_argument_from_instructions(instructions, "scale"))
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nOriginal scale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
 
-        view = View_stablediffusion_revision_variations(self.bot, prompt, height, width, seed, scale, plms)
+        view = View_stablediffusion_revision_variations(self.bot, prompt, height, width, seed, plms)
 
         return embed, file, view
     
@@ -413,7 +412,7 @@ class View_stablediffusion_revision(View):
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
         self.add_item(Button__txt2img_iterate())
         self.add_item(Button__txt2img_batch(txt2img, prompt, height, width, scale, plms))
-        self.add_item(Button__txt2img_variations(txt2img, prompt, height, width, seed, scale, plms))
+        self.add_item(Button__txt2img_variations(txt2img, prompt, height, width, seed, plms))
 
 class View_stablediffusion_revision_batch(View):
     def __init__(self,
@@ -432,7 +431,7 @@ class View_stablediffusion_revision_batch(View):
         self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, None, plms, True))
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, None, plms, True))
         self.add_item(Select_txt2img_batch_upscale(txt2img, prompt, height, width, seed, scale, plms))
-        self.add_item(Select_txt2img_variations(txt2img, prompt, height, width, seed, scale, plms))
+        self.add_item(Select_txt2img_variations(txt2img, prompt, height, width, seed, plms))
 
 class View_stablediffusion_revision_variations(View):
     def __init__(self,
@@ -441,14 +440,13 @@ class View_stablediffusion_revision_variations(View):
         height: int,
         width: int,
         seed: int,
-        scale: float,
         plms: bool
     ):
         txt2img = bot.get_cog("txt2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Select_txt2img_variations_upscale(txt2img, prompt, height, width, seed, scale, plms))
+        self.add_item(Select_txt2img_variations_upscale(txt2img, prompt, height, width, seed, plms))
 
 class Button__txt2img_retry(Button):
     def __init__(self,
@@ -565,7 +563,6 @@ class Button__txt2img_variations(Button):
         height: int,
         width: int,
         seed: int,
-        scale: float,
         plms: bool,
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Variations", emoji="🔢", row=0, custom_id="button_txt2img_variations")
@@ -574,7 +571,6 @@ class Button__txt2img_variations(Button):
         self.imgHeight = height
         self.imgWidth = width
         self.seed = seed
-        self.scale = scale
         self.plms = plms
 
     async def callback(self, interaction: discord.Interaction) -> Any:
@@ -583,7 +579,6 @@ class Button__txt2img_variations(Button):
             self.imgHeight,
             self.imgWidth,
             self.seed,
-            self.scale,
             self.plms
         )
         self.disabled = True
@@ -634,7 +629,6 @@ class Select_txt2img_variations(discord.ui.Select):
         height: int,
         width: int,
         seed: int,
-        scale: float,
         plms: bool
     ) -> None:
         self.txt2img = txt2img
@@ -642,7 +636,6 @@ class Select_txt2img_variations(discord.ui.Select):
         self.imgHeight = height
         self.imgWidth = width
         self.seed = seed
-        self.scale = scale
         self.plms = plms
 
         options = []
@@ -658,7 +651,6 @@ class Select_txt2img_variations(discord.ui.Select):
             self.imgHeight,
             self.imgWidth,
             self.seed + int(self.values[0]),
-            self.scale,
             self.plms
         )
         return await super().callback(interaction)
@@ -670,7 +662,6 @@ class Select_txt2img_variations_upscale(discord.ui.Select):
         height: int,
         width: int,
         seed: int,
-        scale: float,
         plms: bool
     ) -> None:
         self.txt2img = txt2img
@@ -678,15 +669,12 @@ class Select_txt2img_variations_upscale(discord.ui.Select):
         self.imgHeight = height
         self.imgWidth = width
         self.seed = seed
-        self.scale = scale
         self.plms = plms
-        
-        factors = [0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.3, 1.4, 1.5]
 
         options = []
 
         for n in range(9):
-            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=factors[n], emoji="↔"))
+            options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=n, emoji="↔"))
 
         super().__init__(custom_id="select_txt2img_variations_upscale", placeholder="↔ Upscale", options=options, row=0)
 
@@ -696,7 +684,7 @@ class Select_txt2img_variations_upscale(discord.ui.Select):
             self.imgHeight,
             self.imgWidth,
             self.seed,
-            self.scale * float(self.values[0]),
+            1.0 * (float(self.values[0]) + 3.0),
             50,
             self.plms,
             False
