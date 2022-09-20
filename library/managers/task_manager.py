@@ -368,13 +368,13 @@ class Task_manager(object):
         )
 
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
-        init_img_url = self.get_encoded_argument_from_instructions(instructions, "init_img")
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
         steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
 
-        embed.description = f"Prompt: `{prompt}`\nInit img url: `{init_img_url}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `Stable Diffusion 1.4`"
 
         view = View_stablediffusion_img2img_revision_single(self.bot, prompt, init_img_url, seed, scale, strength, steps)
 
