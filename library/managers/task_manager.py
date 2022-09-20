@@ -384,28 +384,13 @@ class View_stablediffusion_revision(View):
         plms: bool
     ):
         txt2img = bot.get_cog("txt2img")
-        buttonBatch = Button(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0)
-
-        async def buttonBatch_callback(interaction: discord.Interaction) -> None:
-            await txt2img.function_txt2img(interaction,
-                prompt,
-                height,
-                width,
-                None,
-                scale,
-                steps,
-                plms,
-                True
-            )
-
-        buttonBatch.callback = buttonBatch_callback
 
         super().__init__(timeout=None)
 
         self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
         self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
         self.add_item(Button__txt2img_iterate())
-        self.add_item(buttonBatch)
+        self.add_item(Button__txt2img_batch(txt2img, prompt, height, width, scale, plms))
 
 class View_stablediffusion_revision_batch(View):
     def __init__(self,
@@ -527,6 +512,34 @@ class Button__txt2img_iterate(Button):
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         pass
+
+class Button__txt2img_batch(Button):
+    def __init__(self,
+        txt2img, prompt: str,
+        height: int,
+        width: int,
+        scale: float,
+        plms: bool,
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_txt2img_retry")
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.scale = scale
+        self.plms = plms
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.txt2img.function_txt2img(interaction,
+            self.prompt,
+            self.imgHeight,
+            self.imgWidth,
+            None,
+            self.scale,
+            None,
+            self.plms,
+            True
+        )
 
 class Modal_stablediffusion_revise(discord.ui.Modal):
     def __init__(self,
