@@ -284,7 +284,7 @@ class Task_manager(object):
         return embed, file, None
     
     async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -307,7 +307,7 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion Batch", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -329,7 +329,7 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion Variations", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
