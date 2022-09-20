@@ -284,7 +284,7 @@ class Task_manager(object):
         return embed, file, None
     
     async def receive_stablediffusion(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion", color=discord.Color.dark_grey)
+        embed = discord.Embed(title="Stable Diffusion", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -307,7 +307,7 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion Batch", color=discord.Color.dark_grey)
+        embed = discord.Embed(title="Stable Diffusion Batch", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -329,7 +329,7 @@ class Task_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion Variations", color=discord.Color.dark_grey)
+        embed = discord.Embed(title="Stable Diffusion Variations", color=0x00ff00)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -586,6 +586,7 @@ class Button__txt2img_variations(Button):
             self.scale,
             self.plms
         )
+        self.disabled = True
         return await super().callback(interaction)
 
 class Select_txt2img_batch_upscale(discord.ui.Select):
@@ -687,7 +688,7 @@ class Select_txt2img_variations_upscale(discord.ui.Select):
         for n in range(9):
             options.append(discord.SelectOption(label=f"Upscale image {n + 1}", value=factors[n], emoji="↔"))
 
-        super().__init__(custom_id="select_txt2img_variations_upscale", placeholder="↔ Upscale", options=options, row=1)
+        super().__init__(custom_id="select_txt2img_variations_upscale", placeholder="↔ Upscale", options=options, row=0)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2img.function_txt2img(interaction,
