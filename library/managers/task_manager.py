@@ -21,7 +21,7 @@ class Task_manager(object):
 
         await self.respond(interaction, promptType, promptString, queue_estimate + estimated_time)
 
-        #await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
+        await self.add_task(receiveType, interaction.user.id, interaction.channel.id, instructions, estimated_time, boot_new)
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         if db.field("SELECT taskID FROM tasks WHERE taskID = 1") == None:
@@ -349,12 +349,20 @@ class Task_manager(object):
         return embed, None, None
 
 class View_forget_prompt(View):
-    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str):
+    def __init__(self,
+        prompt_manager: prompt_manager.Prompt_manager,
+        promptID: int,
+        newString: str
+    ):
         super().__init__(timeout=None)
         self.add_item(Button_forget_prompt(prompt_manager, promptID, newString))
 
 class Button_forget_prompt(Button):
-    def __init__(self, prompt_manager: prompt_manager.Prompt_manager, promptID: int, newString: str) -> None:
+    def __init__(self,
+        prompt_manager: prompt_manager.Prompt_manager,
+        promptID: int,
+        newString: str
+    ) -> None:
         super().__init__(label="Forget", style=discord.ButtonStyle.grey, emoji="❌", custom_id="button_forget_prompt")
         self.prompt_manager = prompt_manager
         self.promptID = promptID
@@ -376,13 +384,8 @@ class View_stablediffusion_revision(View):
         plms: bool
     ):
         txt2img = bot.get_cog("txt2img")
-        buttonRetry = Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False)
-        buttonRevise = Button(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0)
         buttonIterate = Button(style=discord.ButtonStyle.grey, label="Iterate", emoji="🔀", row=0, disabled=True)
         buttonBatch = Button(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0)
-
-        async def buttonRevise_callback(interaction: discord.Interaction) -> None:
-            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
 
         async def buttonIterate_callback(interaction: discord.Interaction) -> None:
             pass
@@ -399,14 +402,13 @@ class View_stablediffusion_revision(View):
                 True
             )
 
-        buttonRevise.callback = buttonRevise_callback
         buttonIterate.callback = buttonIterate_callback
         buttonBatch.callback = buttonBatch_callback
 
         super().__init__(timeout=None)
 
-        self.add_item(buttonRetry)
-        self.add_item(buttonRevise)
+        self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
+        self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
         self.add_item(buttonIterate)
         self.add_item(buttonBatch)
 
@@ -421,14 +423,6 @@ class View_stablediffusion_revision_batch(View):
         plms: bool
     ):
         txt2img = bot.get_cog("txt2img")
-        buttonRetry = Button__txt2img_retry(txt2img, prompt, height, width, scale, 15, plms, True)
-        buttonRevise = Button(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0)
-
-        async def buttonRevise_callback(interaction: discord.Interaction) -> None:
-            ##The 15 step count here doesn't actually do anything. The batch function does not send step count and uses the default set in the SD script.
-            await interaction.response.send_modal(Modal_stablediffusion_revise(txt2img, prompt, height, width, seed, scale, 15, plms, True))
-
-        buttonRevise.callback = buttonRevise_callback
 
         optionsUpscale = []
 
@@ -457,12 +451,20 @@ class View_stablediffusion_revision_batch(View):
 
         super().__init__(timeout=None)
 
-        self.add_item(buttonRetry)
-        self.add_item(buttonRevise)
+        self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, None, plms, True))
+        self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, None, plms, True))
         self.add_item(selectUpscale)
 
 class Button__txt2img_retry(Button):
-    def __init__(self, txt2img, prompt: str, height: int, width: int, scale: float, steps: int, plms: bool, batch: bool) -> None:
+    def __init__(self,
+        txt2img, prompt: str,
+        height: int,
+        width: int,
+        scale: float,
+        steps: int,
+        plms: bool,
+        batch: bool
+    ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_txt2img_retry")
         self.txt2img = txt2img
         self.prompt = prompt
@@ -482,6 +484,43 @@ class Button__txt2img_retry(Button):
             self.steps,
             self.plms,
             self.batch
+        )
+
+class Button__txt2img_revise(Button):
+    def __init__(self,
+        txt2img,
+        prompt: str,
+        height: int,
+        width: int,
+        seed: int,
+        scale: float,
+        steps: int,
+        plms: bool,
+        batch: bool
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0, custom_id="button_txt2img_revise")
+        self.txt2img = txt2img
+        self.prompt = prompt
+        self.imgHeight = height
+        self.imgWidth = width
+        self.seed = seed
+        self.scale = scale
+        self.steps = steps
+        self.plms = plms
+        self.batch = batch
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await interaction.response.send_modal(
+            Modal_stablediffusion_revise(
+                self.txt2img,
+                self.prompt,
+                self.imgHeight,
+                self.imgWidth,
+                self.seed,
+                self.scale,
+                self.steps,
+                self.plms,
+                self.batch
+            )
         )
 
 class Modal_stablediffusion_revise(discord.ui.Modal):
@@ -544,7 +583,7 @@ class Modal_stablediffusion_revise(discord.ui.Modal):
         scale = float(scaleString)
 
         if self.batch:
-            steps = 15
+            steps = None
         else:
             if not pattern2.match(self.stepsField.value):
                 await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
