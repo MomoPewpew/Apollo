@@ -23,7 +23,7 @@ class Output_manager(object):
         return subString[0:index2]
 
     async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Image", color=0x00ff00)
+        embed = discord.Embed(title="Image", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -39,7 +39,7 @@ class Output_manager(object):
         return embed, file, None
 
     async def receive_stablediffusion_txt2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -62,7 +62,7 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_txt2img_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -84,7 +84,7 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_txt2img_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -105,7 +105,7 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_img2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion img2img", color=0x00ff00)
+        embed = discord.Embed(title="Stable Diffusion img2img", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -130,7 +130,7 @@ class Output_manager(object):
         ##TODO: Read file
         output_txt = ""
 
-        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x00ff00)
+        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x2f3136)
 
         db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
             output_txt,
