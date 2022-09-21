@@ -35,8 +35,15 @@ class Test(Cog):
         self, interaction: discord.Interaction
     ) -> None:
         img2imgCog = self.bot.get_cog("img2img")
-        modal = img2img.View_img2img_revision_single(
-
+        modal = img2img.Modal_img2img_revise(
+            img2imgCog,
+            "Test prompt",
+            "testUrl",
+            12345,
+            6.5,
+            0.75,
+            50,
+            False
         )
         await interaction.response.send_modal(
             modal

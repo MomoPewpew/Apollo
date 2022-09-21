@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
-from discord.ui import View
+from discord.ui import View, Modal
 
 COG_NAME = "img2img"
 
@@ -93,9 +93,9 @@ class View_img2img_single(View):
         #self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
         #self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
 
-class Modal_img2img_revise(discord.ui.Modal):
+class Modal_img2img_revise(Modal):
     def __init__(self,
-        img2img,
+        img2imgCog,
         prompt: str,
         init_img_url: str,
         seed: int,
@@ -104,8 +104,8 @@ class Modal_img2img_revise(discord.ui.Modal):
         steps: int,
         batch: bool
     ) -> None:
-        super().__init__(title="Use the previous output in a new img2img task")
-        self.img2img = img2img
+        super().__init__(title="Revise img2img task")
+        self.img2imgCog = img2imgCog
         self.batch = batch
         self.init_img_url = init_img_url
 
@@ -163,7 +163,7 @@ class Modal_img2img_revise(discord.ui.Modal):
             steps = self.stepsField.value
 
         if self.init_img_url is None:
-            await self.img2img.function_img2img(interaction,
+            await self.img2imgCog.function_img2img(interaction,
                 prompt,
                 self.init_img_url,
                 seed,

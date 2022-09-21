@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
-from discord.ui import View, Button
+from discord.ui import View, Button, Modal
 from ..db import db
 from . import img2img
 
@@ -246,6 +246,7 @@ class Button_txt2img_iterate(Button):
                 self.init_img_url,
                 self.seed,
                 self.scale,
+                0.75,
                 50,
                 False
             )
@@ -416,7 +417,7 @@ class Select_txt2img_batch_variations(discord.ui.Select):
         )
         return await super().callback(interaction)
 
-class Modal_stablediffusion_revise(discord.ui.Modal):
+class Modal_stablediffusion_revise(Modal):
     def __init__(self,
         txt2imgCog,
         prompt: str,
