@@ -203,7 +203,7 @@ class Button_txt2img_revise(Button):
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await interaction.response.send_modal(
-            Modal_stablediffusion_revise(
+            Modal_txt2img_revise(
                 self.txt2imgCog,
                 self.prompt,
                 self.imgHeight,
@@ -417,7 +417,7 @@ class Select_txt2img_batch_variations(discord.ui.Select):
         )
         return await super().callback(interaction)
 
-class Modal_stablediffusion_revise(Modal):
+class Modal_txt2img_revise(Modal):
     def __init__(self,
         txt2imgCog,
         prompt: str,
@@ -445,7 +445,7 @@ class Modal_stablediffusion_revise(Modal):
         if not self.batch:
             self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
             self.add_item(self.stepsField)
-
+            
     async def on_submit(self, interaction: discord.Interaction) -> None:
         prompt = self.promptField.value
 
