@@ -1,8 +1,10 @@
+from typing import Any
 import discord
-from discord.ui import Select, View
+from discord.ui import Select, View, Button
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
+from ..managers.prompt_manager import Prompt_manager
 
 import re
 
@@ -136,3 +138,28 @@ class View_tag(View):
         super().__init__()
 
         self.add_item(select)
+
+
+class View_forget_prompt(View):
+    def __init__(self,
+        prompt_manager: Prompt_manager,
+        promptID: int,
+        newString: str
+    ):
+        super().__init__(timeout=None)
+        self.add_item(Button_forget_prompt(prompt_manager, promptID, newString))
+
+class Button_forget_prompt(Button):
+    def __init__(self,
+        prompt_manager: Prompt_manager,
+        promptID: int,
+        newString: str
+    ) -> None:
+        super().__init__(label="Forget", style=discord.ButtonStyle.grey, emoji="❌", custom_id="button_forget_prompt")
+        self.prompt_manager = prompt_manager
+        self.promptID = promptID
+        self.newString = newString
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        self.prompt_manager.remove_prompt(self.promptID)
+        await interaction.response.edit_message(content=self.newString, view=None)

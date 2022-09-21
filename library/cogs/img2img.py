@@ -1,8 +1,10 @@
 import random
+import re
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
+from discord.ui import View
 
 COG_NAME = "img2img"
 
@@ -72,3 +74,102 @@ class img2img(Cog):
 
 async def setup(bot) -> None:
     await bot.add_cog(img2img(bot))
+
+class View_img2img_revision_single(View):
+    def __init__(self,
+        bot: bot,
+        prompt: str,
+        init_img_url: str,
+        seed: int,
+        scale: float,
+        strength: float,
+        steps: int
+    ):
+        txt2img = bot.get_cog("txt2img")
+
+        super().__init__(timeout=None)
+
+        #self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
+        #self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
+
+class Modal_img2img_revise(discord.ui.Modal):
+    def __init__(self,
+        img2img,
+        prompt: str,
+        init_img_url: str,
+        seed: int,
+        scale: float,
+        strength: float,
+        steps: int,
+        batch: bool
+    ) -> None:
+        super().__init__(title="Use the previous output in a new img2img task")
+        self.img2img = img2img
+        self.batch = batch
+        self.init_img_url = init_img_url
+
+        self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
+        self.add_item(self.promptField)
+        self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
+        self.add_item(self.seedField)
+        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=scale, required=True)
+        self.add_item(self.scaleField)
+        self.strengthField = discord.ui.TextInput(label="Strength", style=discord.TextStyle.short, placeholder="Float", default=strength, required=True)
+        self.add_item(self.strengthField)
+
+        if not self.batch:
+            self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
+            self.add_item(self.stepsField)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        prompt = self.promptField.value
+
+        pattern2 = re.compile("^[0-9]+$")
+        if self.seedField.value != "" and not pattern2.match(self.seedField.value):
+            await interaction.response.send_message("Seed must be a positive integer or empty", ephemeral=True)
+            return
+
+        seed = None if self.seedField.value == "" else int(self.seedField.value)
+
+        scaleString = self.scaleField.value
+
+        if pattern2.match(scaleString): scaleString += ".0"
+
+        pattern3 = re.compile("^[0-9]+\.[0-9]+$")
+        if not pattern3.match(scaleString):
+            await interaction.response.send_message("Scale must be a float", ephemeral=True)
+            return
+
+        scale = float(scaleString)
+
+        strengthString = self.strengthField.value
+
+        if pattern2.match(strengthString): strengthString += ".0"
+
+        if not pattern3.match(strengthString):
+            await interaction.response.send_message("Strength must be a float", ephemeral=True)
+            return
+
+        strength = float(strengthString)
+
+        if self.batch:
+            steps = None
+        else:
+            if not pattern2.match(self.stepsField.value):
+                await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
+                return
+
+            steps = self.stepsField.value
+
+        if self.init_img_url is None:
+            await self.img2img.function_img2img(interaction,
+                prompt,
+                self.init_img_url,
+                seed,
+                scale,
+                strength,
+                steps,
+                self.batch
+            )
+            
+        return await super().on_submit(interaction)

@@ -1,6 +1,8 @@
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
+
+from . import img2img
 from .. import bot
 
 COG_NAME = "test"
@@ -32,7 +34,13 @@ class Test(Cog):
     async def command_testcommand(
         self, interaction: discord.Interaction
     ) -> None:
-        print(await self.bot.instance_manager.is_ssm_available(0))
+        img2imgCog = self.bot.get_cog("img2img")
+        modal = img2img.View_img2img_revision_single(
+
+        )
+        await interaction.response.send_modal(
+            modal
+        )
 
     @Cog.listener()
     async def on_ready(self) -> None:
