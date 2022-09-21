@@ -222,7 +222,6 @@ class Button_txt2img_iterate(Button):
         img2imgCog,
         taskID: int,
         prompt: str,
-        seed: int,
         scale: float
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate")
@@ -230,7 +229,6 @@ class Button_txt2img_iterate(Button):
         self.img2imgCog = img2imgCog
         self.taskID = taskID
         self.prompt = prompt
-        self.seed = seed
         self.scale = scale
 
     async def callback(self, interaction: discord.Interaction) -> Any:
@@ -244,7 +242,7 @@ class Button_txt2img_iterate(Button):
                 self.img2imgCog,
                 self.prompt,
                 self.init_img_url,
-                self.seed,
+                "",
                 self.scale,
                 0.75,
                 50,

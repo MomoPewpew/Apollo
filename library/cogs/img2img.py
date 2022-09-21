@@ -4,7 +4,8 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
-from discord.ui import View, Modal
+from discord.ui import View, Modal, Button
+from . import txt2img
 
 COG_NAME = "img2img"
 
@@ -86,12 +87,13 @@ class View_img2img_single(View):
         strength: float,
         steps: int
     ):
-        txt2img = bot.get_cog("txt2img")
+        img2imgCog = bot.get_cog("img2img")
 
         super().__init__(timeout=None)
 
         #self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
         #self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
+        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, seed, scale))
 
 class Modal_img2img_revise(Modal):
     def __init__(self,
@@ -162,15 +164,14 @@ class Modal_img2img_revise(Modal):
 
             steps = self.stepsField.value
 
-        if self.init_img_url is None:
-            await self.img2imgCog.function_img2img(interaction,
-                prompt,
-                self.init_img_url,
-                seed,
-                scale,
-                strength,
-                steps,
-                self.batch
-            )
+        await self.img2imgCog.function_img2img(interaction,
+            prompt,
+            self.init_img_url,
+            seed,
+            scale,
+            strength,
+            steps,
+            self.batch
+        )
             
         return await super().on_submit(interaction)
