@@ -122,7 +122,7 @@ class Output_manager(object):
 
         embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `Stable Diffusion 1.4`"
 
-        view = img2img.View_img2img_revision_single(self.bot, prompt, init_img_url, seed, scale, strength, steps)
+        view = img2img.View_img2img_single(self.bot, taskID, prompt, init_img_url, seed, scale, strength, steps)
 
         return embed, file, view
 

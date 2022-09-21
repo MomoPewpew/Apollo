@@ -75,9 +75,10 @@ class img2img(Cog):
 async def setup(bot) -> None:
     await bot.add_cog(img2img(bot))
 
-class View_img2img_revision_single(View):
+class View_img2img_single(View):
     def __init__(self,
         bot: bot,
+        taskID: int,
         prompt: str,
         init_img_url: str,
         seed: int,
