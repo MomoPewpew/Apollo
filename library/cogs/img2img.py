@@ -1,5 +1,6 @@
 import random
 import re
+from typing import Any
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
@@ -91,9 +92,76 @@ class View_img2img_single(View):
 
         super().__init__(timeout=None)
 
-        #self.add_item(Button__txt2img_retry(txt2img, prompt, height, width, scale, steps, plms, False))
-        #self.add_item(Button__txt2img_revise(txt2img, prompt, height, width, seed, scale, steps, plms, False))
-        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, seed, scale))
+        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, steps, False))
+        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, steps, False))
+        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, scale))
+
+class Button_img2img_retry(Button):
+    def __init__(self,
+        img2imgCog,
+        prompt: str,
+        init_img_url: str,
+        scale: float,
+        strength: float,
+        steps: int,
+        batch: bool
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_img2img_retry")
+        self.img2imgCog = img2imgCog
+        self.prompt = prompt
+        self.init_img_url = init_img_url
+        self.scale = scale
+        self.strength = strength
+        self.steps = steps
+        self.batch = batch
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await self.img2imgCog.function_img2img(interaction,
+            self.prompt,
+            self.init_img_url,
+            None,
+            self.scale,
+            self.strength,
+            self.steps,
+            self.batch
+        )
+        return await super().callback(interaction)
+
+class Button_img2img_revise(Button):
+    def __init__(self,
+        img2imgCog,
+        prompt: str,
+        init_img_url: str,
+        seed: int,
+        scale: float,
+        strength: float,
+        steps: int,
+        batch: bool
+    ) -> None:
+        super().__init__(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0, custom_id="button_img2img_revise")
+        self.img2imgCog = img2imgCog
+        self.prompt = prompt
+        self.init_img_url = init_img_url
+        self.seed = seed
+        self.scale = scale
+        self.strength = strength
+        self.steps = steps
+        self.batch = batch
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        await interaction.response.send_modal(
+            Modal_img2img_revise(
+                self.img2imgCog,
+                self.prompt,
+                self.init_img_url,
+                self.seed,
+                self.scale,
+                self.strength,
+                self.steps,
+                False
+            )
+        )
+        return await super().callback(interaction)
 
 class Modal_img2img_revise(Modal):
     def __init__(self,

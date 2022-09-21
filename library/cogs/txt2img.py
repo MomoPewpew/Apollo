@@ -106,7 +106,7 @@ class View_txt2img_single(View):
 
         self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, steps, plms, False))
         self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, steps, plms, False))
-        self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, seed, scale))
+        self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, scale))
         self.add_item(Button_txt2img_batch(txt2imgCog, prompt, height, width, scale, plms))
         self.add_item(Button_txt2img_variations(txt2imgCog, prompt, height, width, seed, plms))
 
