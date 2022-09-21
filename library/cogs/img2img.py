@@ -113,9 +113,9 @@ class Modal_img2img_revise(Modal):
         self.add_item(self.promptField)
         self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
         self.add_item(self.seedField)
-        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=scale, required=True)
+        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
         self.add_item(self.scaleField)
-        self.strengthField = discord.ui.TextInput(label="Strength", style=discord.TextStyle.short, placeholder="Float", default=strength, required=True)
+        self.strengthField = discord.ui.TextInput(label="Strength", style=discord.TextStyle.short, placeholder="Float", default=str(strength), required=True)
         self.add_item(self.strengthField)
 
         if not self.batch:

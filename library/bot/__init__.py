@@ -9,6 +9,9 @@ from discord.ext.commands import Bot as BotBase, CommandNotFound, Context, error
 from ..db import db
 from ..managers import cog_manager, prompt_manager, task_manager, user_manager, instance_manager
 
+import logging
+
+
 APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
@@ -61,7 +64,7 @@ class Bot(BotBase):
         for guild in GUILDS:
             self.tree.copy_global_to(guild=guild)
             await self.tree.sync(guild=guild)
-        
+
         return await super().setup_hook()
 
     ##Not sure if this is going to actually work. So far it doesn't hurt.
@@ -124,4 +127,5 @@ class Bot(BotBase):
             raise exception
         return await super().on_command_error(context, exception)
 
+#logging.basicConfig(level=logging.INFO)
 bot = Bot()

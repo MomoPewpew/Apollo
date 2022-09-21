@@ -440,7 +440,7 @@ class Modal_txt2img_revise(Modal):
         self.add_item(self.dimensionsField)
         self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
         self.add_item(self.seedField)
-        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=scale, required=True)
+        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
         self.add_item(self.scaleField)
         if not self.batch:
             self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
