@@ -5,7 +5,7 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
-from discord.ui import View, Button, Modal
+from discord.ui import View, Button, Modal, Select
 from ..db import db
 from . import img2img
 
@@ -146,7 +146,7 @@ class View_txt2img_variations(View):
 
 class Button_txt2img_retry(Button):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -180,7 +180,7 @@ class Button_txt2img_retry(Button):
 
 class Button_txt2img_revise(Button):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -253,7 +253,8 @@ class Button_txt2img_iterate(Button):
 
 class Button_txt2img_batch(Button):
     def __init__(self,
-        txt2imgCog, prompt: str,
+        txt2imgCog: txt2img,
+        prompt: str,
         height: int,
         width: int,
         scale: float,
@@ -282,7 +283,7 @@ class Button_txt2img_batch(Button):
 
 class Button_txt2img_variations(Button):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -308,9 +309,9 @@ class Button_txt2img_variations(Button):
         self.disabled = True
         return await super().callback(interaction)
 
-class Select_txt2img_batch_upscale(discord.ui.Select):
+class Select_txt2img_batch_upscale(Select):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -346,9 +347,9 @@ class Select_txt2img_batch_upscale(discord.ui.Select):
         )
         return await super().callback(interaction)
 
-class Select_txt2img_variations_upscale(discord.ui.Select):
+class Select_txt2img_variations_upscale(Select):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -382,9 +383,9 @@ class Select_txt2img_variations_upscale(discord.ui.Select):
         )
         return await super().callback(interaction)
 
-class Select_txt2img_batch_variations(discord.ui.Select):
+class Select_txt2img_batch_variations(Select):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,
@@ -417,7 +418,7 @@ class Select_txt2img_batch_variations(discord.ui.Select):
 
 class Modal_txt2img_revise(Modal):
     def __init__(self,
-        txt2imgCog,
+        txt2imgCog: txt2img,
         prompt: str,
         height: int,
         width: int,

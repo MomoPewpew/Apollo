@@ -126,6 +126,46 @@ class Output_manager(object):
 
         return embed, file, view
 
+    async def receive_stablediffusion_img2img_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion img2img", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
+        strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
+
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `15`\nModel: `Stable Diffusion 1.4`"
+
+        view = img2img.View_img2img_batch(self.bot, prompt, init_img_url, seed, scale, strength)
+
+        return embed, file, view
+
+    async def receive_stablediffusion_img2img_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion img2img", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
+            taskID
+        )
+
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
+        seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScales: `5.0, 7.5, 10.0`\nStrengths: `0.6, 0.75, 0.9`\nSteps: `15`\nModel: `Stable Diffusion 1.4`"
+
+        view = img2img.View_img2img_variations(self.bot, prompt, init_img_url, seed)
+
+        return embed, file, view
+
     async def receive_prompt(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         ##TODO: Read file
         output_txt = ""
