@@ -3,15 +3,15 @@ from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
 
-COG_NAME = "cancel"
+COG_NAME = "administration"
 
-class Cancel(Cog):
+class Administration(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
         super().__init__()
 
     @app_commands.command(
-        name=COG_NAME,
+        name="cancel",
         description = "Cancel an ongoing task"
     )
     async def command_cancel(
@@ -30,4 +30,4 @@ class Cancel(Cog):
             self.bot.cog_manager.ready_up(COG_NAME)
 
 async def setup(bot) -> None:
-    await bot.add_cog(Cancel(bot))
+    await bot.add_cog(Administration(bot))
