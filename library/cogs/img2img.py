@@ -109,6 +109,8 @@ class View_img2img_batch(View):
 
         super().__init__(timeout=None)
 
+        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, None, True))
+        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, None, True))
         self.add_item(Select_img2img_batch_upscale(img2imgCog, prompt, init_img_url, seed, scale, strength))
         self.add_item(Select_img2img_batch_variations(img2imgCog, prompt, init_img_url, seed))
 
@@ -335,7 +337,7 @@ class Select_img2img_batch_variations(Select):
         await self.img2imgCog.function_img2img_variations(interaction,
             self.prompt,
             self.init_img_url,
-            self.seed + int(self.values[0]),
+            self.seed + int(self.values[0])
         )
         return await super().callback(interaction)
 
