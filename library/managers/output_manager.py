@@ -127,7 +127,7 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_img2img_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion img2img", color=0x2f3136)
+        embed = discord.Embed(title="Stable Diffusion img2img Batch", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
@@ -148,7 +148,7 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_img2img_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion img2img", color=0x2f3136)
+        embed = discord.Embed(title="Stable Diffusion img2img Variations", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 

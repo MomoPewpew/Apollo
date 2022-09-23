@@ -65,7 +65,7 @@ class img2img(Cog):
         init_img_url: str,
         seed: int
     ) -> None:
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
@@ -189,7 +189,7 @@ class Button_img2img_revise(Button):
                 self.scale,
                 self.strength,
                 self.steps,
-                False
+                self.batch
             )
         )
         return await super().callback(interaction)
