@@ -14,6 +14,9 @@ class Administration(Cog):
         name="cancel",
         description = "Cancel an ongoing task"
     )
+    @app_commands.describe(
+        taskid = "The ID of the task that you want to cancel. If it didn't give you one then it cannot be canceled"
+    )
     async def command_cancel(
         self,
         interaction: discord.Interaction,

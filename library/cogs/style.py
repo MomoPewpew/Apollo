@@ -14,6 +14,9 @@ class Style(Cog):
         name="style_arcane",
         description = "Convert an image at the provided URL into the animation style of Arcane"
     )
+    @app_commands.describe(
+        url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
+    )
     async def command_style_arcane(
         self,
         interaction: discord.Interaction,

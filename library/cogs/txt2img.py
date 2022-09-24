@@ -20,6 +20,22 @@ class txt2img(Cog):
         name=COG_NAME,
         description = "Convert a text prompt into an image"
     )
+    @app_commands.describe(
+        prompt = "Describe the desired output image. Use commas to separate different parts of your description",
+        height = "The height of the output image in pixels. This must be a multiple of 64",
+        width = "The width of the output image in pixels. This must be a multiple of 64",
+        seed = "The RNG seed. If you want to make something that looks like a previous output, type the same seed here",
+        scale = "How strictly should I follow your prompt? A lower scale allows me to take more creative liberties",
+        steps = "How much time should I spend refining the image? Batches are locked at 15 steps",
+        plms = "Use PLMS sampling instead of regular sampling. This will give you a different output",
+        batch = "Shall I mass-produce a sample platter of images, or a single refined one?",
+        model = "What set of training data would you like me to use?"
+    )
+    @app_commands.choices(model=
+        [
+            app_commands.Choice(name="Stable Diffusion 1.4", value="Stable Diffusion 1.4")
+        ]
+    )
     async def command_txt2img(
         self,
         interaction: discord.Interaction,
@@ -30,7 +46,8 @@ class txt2img(Cog):
         scale: float = 7.5,
         steps: int = 50,
         plms: bool = True,
-        batch: bool = False
+        batch: bool = False,
+        model: app_commands.Choice[str] = "Stable Diffusion 1.4"
     ) -> None:
         await self.function_txt2img(
             interaction,
