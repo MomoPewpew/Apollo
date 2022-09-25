@@ -33,7 +33,7 @@ class txt2img(Cog):
     )
     @app_commands.choices(model=
         [
-            app_commands.Choice(name="Stable Diffusion 1.4", value="Stable Diffusion 1.4")
+            app_commands.Choice(name="Stable Diffusion 1.4", value="/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         ]
     )
     async def command_txt2img(
@@ -47,7 +47,7 @@ class txt2img(Cog):
         steps: int = 50,
         plms: bool = True,
         batch: bool = False,
-        model: app_commands.Choice[str] = "Stable Diffusion 1.4"
+        model: app_commands.Choice[str] = "/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
     ) -> None:
         await self.function_txt2img(
             interaction,
@@ -58,7 +58,8 @@ class txt2img(Cog):
             scale,
             steps,
             plms,
-            batch
+            batch,
+            model
         )
 
     async def function_txt2img(self,
@@ -70,7 +71,8 @@ class txt2img(Cog):
         scale: float,
         steps: int,
         plms: bool,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         if height %64 != 0 or width %64 != 0:
             await interaction.response.send_message(f"The height and width must be a multiple of 64. Your prompt was `{prompt}`", ephemeral=True)
@@ -80,9 +82,9 @@ class txt2img(Cog):
 
         plmsString = " #arg#plms" if plms else ""
         if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString} #arg#ckpt {model}\"")
         else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString}\"")
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString} #arg#ckpt {model}\"")
 
     async def function_txt2img_variations(self,
         interaction: discord.Interaction,
@@ -90,11 +92,12 @@ class txt2img(Cog):
         height: int,
         width: int,
         seed: int,
-        plms: bool
+        plms: bool,
+        model: str
     ) -> None:
         plmsString = " #arg#plms" if plms else ""
 
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString}\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString} #arg#ckpt {model}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
@@ -114,18 +117,19 @@ class View_txt2img_single(View):
         seed: int,
         scale: float,
         steps: int,
-        plms: bool
+        plms: bool,
+        model: str
     ):
         txt2imgCog = bot.get_cog("txt2img")
         img2imgCog = bot.get_cog("img2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, steps, plms, False))
-        self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, steps, plms, False))
-        self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, scale))
-        self.add_item(Button_txt2img_batch(txt2imgCog, prompt, height, width, scale, plms))
-        self.add_item(Button_txt2img_variations(txt2imgCog, prompt, height, width, seed, plms))
+        self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, steps, plms, False, model))
+        self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, steps, plms, False, model))
+        self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
+        self.add_item(Button_txt2img_batch(txt2imgCog, prompt, height, width, scale, plms, model))
+        self.add_item(Button_txt2img_variations(txt2imgCog, prompt, height, width, seed, plms, model))
 
 class View_txt2img_batch(View):
     def __init__(self,
@@ -135,16 +139,17 @@ class View_txt2img_batch(View):
         width: int,
         seed: int,
         scale: float,
-        plms: bool
+        plms: bool,
+        model: str
     ):
         txt2imgCog = bot.get_cog("txt2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, None, plms, True))
-        self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, None, plms, True))
-        self.add_item(Select_txt2img_batch_upscale(txt2imgCog, prompt, height, width, seed, scale, plms))
-        self.add_item(Select_txt2img_batch_variations(txt2imgCog, prompt, height, width, seed, plms))
+        self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, None, plms, True, model))
+        self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, None, plms, True, model))
+        self.add_item(Select_txt2img_batch_upscale(txt2imgCog, prompt, height, width, seed, scale, plms, model))
+        self.add_item(Select_txt2img_batch_variations(txt2imgCog, prompt, height, width, seed, plms, model))
 
 class View_txt2img_variations(View):
     def __init__(self,
@@ -153,13 +158,14 @@ class View_txt2img_variations(View):
         height: int,
         width: int,
         seed: int,
-        plms: bool
+        plms: bool,
+        model: str
     ):
         txt2imgCog = bot.get_cog("txt2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Select_txt2img_variations_upscale(txt2imgCog, prompt, height, width, seed, plms))
+        self.add_item(Select_txt2img_variations_upscale(txt2imgCog, prompt, height, width, seed, plms, model))
 
 class Button_txt2img_retry(Button):
     def __init__(self,
@@ -170,7 +176,8 @@ class Button_txt2img_retry(Button):
         scale: float,
         steps: int,
         plms: bool,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_txt2img_retry")
         self.txt2imgCog = txt2imgCog
@@ -181,6 +188,7 @@ class Button_txt2img_retry(Button):
         self.steps = steps
         self.plms = plms
         self.batch = batch
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2imgCog.function_txt2img(interaction,
@@ -191,7 +199,8 @@ class Button_txt2img_retry(Button):
             self.scale,
             self.steps,
             self.plms,
-            self.batch
+            self.batch,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -205,7 +214,8 @@ class Button_txt2img_revise(Button):
         scale: float,
         steps: int,
         plms: bool,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0, custom_id="button_txt2img_revise")
         self.txt2imgCog = txt2imgCog
@@ -217,6 +227,7 @@ class Button_txt2img_revise(Button):
         self.steps = steps
         self.plms = plms
         self.batch = batch
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await interaction.response.send_modal(
@@ -229,7 +240,8 @@ class Button_txt2img_revise(Button):
                 self.scale,
                 self.steps,
                 self.plms,
-                self.batch
+                self.batch,
+                self.model
             )
         )
         return await super().callback(interaction)
@@ -239,7 +251,8 @@ class Button_txt2img_iterate(Button):
         img2imgCog,
         taskID: int,
         prompt: str,
-        scale: float
+        scale: float,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate")
         self.init_img_url = ""
@@ -247,6 +260,7 @@ class Button_txt2img_iterate(Button):
         self.taskID = taskID
         self.prompt = prompt
         self.scale = scale
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         if self.init_img_url == "":
@@ -263,7 +277,8 @@ class Button_txt2img_iterate(Button):
                 self.scale,
                 0.75,
                 50,
-                False
+                False,
+                self.model
             )
         )
         return await super().callback(interaction)
@@ -276,6 +291,7 @@ class Button_txt2img_batch(Button):
         width: int,
         scale: float,
         plms: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0, custom_id="button_txt2img_batch")
         self.txt2imgCog = txt2imgCog
@@ -284,6 +300,7 @@ class Button_txt2img_batch(Button):
         self.imgWidth = width
         self.scale = scale
         self.plms = plms
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2imgCog.function_txt2img(interaction,
@@ -294,7 +311,8 @@ class Button_txt2img_batch(Button):
             self.scale,
             None,
             self.plms,
-            True
+            True,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -306,6 +324,7 @@ class Button_txt2img_variations(Button):
         width: int,
         seed: int,
         plms: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Variations", emoji="🔢", row=0, custom_id="button_txt2img_variations")
         self.txt2imgCog = txt2imgCog
@@ -314,6 +333,7 @@ class Button_txt2img_variations(Button):
         self.imgWidth = width
         self.seed = seed
         self.plms = plms
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.txt2imgCog.function_txt2img_variations(interaction,
@@ -321,7 +341,8 @@ class Button_txt2img_variations(Button):
             self.imgHeight,
             self.imgWidth,
             self.seed,
-            self.plms
+            self.plms,
+            self.model
         )
         self.disabled = True
         return await super().callback(interaction)
@@ -334,7 +355,8 @@ class Select_txt2img_batch_upscale(Select):
         width: int,
         seed: int,
         scale: float,
-        plms: bool
+        plms: bool,
+        model: str
     ) -> None:
         self.txt2imgCog = txt2imgCog
         self.prompt = prompt
@@ -343,6 +365,7 @@ class Select_txt2img_batch_upscale(Select):
         self.seed = seed
         self.scale = scale
         self.plms = plms
+        self.model = model
 
         options = []
 
@@ -360,7 +383,8 @@ class Select_txt2img_batch_upscale(Select):
             self.scale,
             50,
             self.plms,
-            False
+            False,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -371,7 +395,8 @@ class Select_txt2img_variations_upscale(Select):
         height: int,
         width: int,
         seed: int,
-        plms: bool
+        plms: bool,
+        model: str
     ) -> None:
         self.txt2imgCog = txt2imgCog
         self.prompt = prompt
@@ -379,6 +404,7 @@ class Select_txt2img_variations_upscale(Select):
         self.imgWidth = width
         self.seed = seed
         self.plms = plms
+        self.model = model
 
         options = []
 
@@ -396,7 +422,8 @@ class Select_txt2img_variations_upscale(Select):
             1.0 * (float(self.values[0]) + 3.0),
             50,
             self.plms,
-            False
+            False,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -407,7 +434,8 @@ class Select_txt2img_batch_variations(Select):
         height: int,
         width: int,
         seed: int,
-        plms: bool
+        plms: bool,
+        model: str
     ) -> None:
         self.txt2imgCog = txt2imgCog
         self.prompt = prompt
@@ -415,6 +443,7 @@ class Select_txt2img_batch_variations(Select):
         self.imgWidth = width
         self.seed = seed
         self.plms = plms
+        self.model = model
 
         options = []
 
@@ -429,7 +458,8 @@ class Select_txt2img_batch_variations(Select):
             self.imgHeight,
             self.imgWidth,
             self.seed + int(self.values[0]),
-            self.plms
+            self.plms,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -443,12 +473,14 @@ class Modal_txt2img_revise(Modal):
         scale: float,
         steps: int,
         plms: bool,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(title="Revise txt2img task")
         self.txt2imgCog = txt2imgCog
         self.plms = plms
         self.batch = batch
+        self.model = model
 
         self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
         self.add_item(self.promptField)
@@ -509,7 +541,8 @@ class Modal_txt2img_revise(Modal):
             scale,
             steps,
             self.plms,
-            self.batch
+            self.batch,
+            self.model
         )
 
         return await super().on_submit(interaction)

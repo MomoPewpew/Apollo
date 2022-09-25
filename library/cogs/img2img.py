@@ -32,7 +32,7 @@ class img2img(Cog):
     )
     @app_commands.choices(model=
         [
-            app_commands.Choice(name="Stable Diffusion 1.4", value="Stable Diffusion 1.4")
+            app_commands.Choice(name="Stable Diffusion 1.4", value="/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         ]
     )
     async def command_img2img(
@@ -45,7 +45,7 @@ class img2img(Cog):
         strength: float = 0.75,
         steps: int = 50,
         batch: bool = False,
-        model: app_commands.Choice[str] = "Stable Diffusion 1.4"
+        model: app_commands.Choice[str] = "/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
     ) -> None:
         await self.function_img2img(
             interaction,
@@ -55,7 +55,8 @@ class img2img(Cog):
             scale,
             strength,
             steps,
-            batch
+            batch,
+            model
         )
 
     async def function_img2img(self,
@@ -66,22 +67,24 @@ class img2img(Cog):
         scale: float,
         strength: float,
         steps: int,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         seed = int(random.randrange(4294966294)) if seed is None else seed
         strength = 0.0 if strength < 0.0 else 1.0 if strength > 1.0 else strength
         if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgBatch --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgBatch --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ckpt {model}\"")
         else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_img2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgSingle --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ddim_steps {steps}\"")
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_img2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgSingle --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ddim_steps {steps} #arg#ckpt {model}\"")
 
     async def function_img2img_variations(self,
         interaction: discord.Interaction,
         prompt: str,
         init_img_url: str,
-        seed: int
+        seed: int,
+        model: str
     ) -> None:
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed}\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#ckpt {model}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
@@ -100,17 +103,18 @@ class View_img2img_single(View):
         seed: int,
         scale: float,
         strength: float,
-        steps: int
+        steps: int,
+        model: str
     ):
         img2imgCog = bot.get_cog("img2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, steps, False))
-        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, steps, False))
-        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, scale))
-        self.add_item(Button_img2img_batch(img2imgCog, prompt, init_img_url, scale, strength))
-        self.add_item(Button_img2img_variations(img2imgCog, prompt, init_img_url, seed))
+        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, steps, False, model))
+        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, steps, False, model))
+        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
+        self.add_item(Button_img2img_batch(img2imgCog, prompt, init_img_url, scale, strength, model))
+        self.add_item(Button_img2img_variations(img2imgCog, prompt, init_img_url, seed, model))
 
 class View_img2img_batch(View):
     def __init__(self,
@@ -119,29 +123,31 @@ class View_img2img_batch(View):
         init_img_url: str,
         seed: int,
         scale: float,
-        strength: float
+        strength: float,
+        model: str
     ):
         img2imgCog = bot.get_cog("img2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, None, True))
-        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, None, True))
-        self.add_item(Select_img2img_batch_upscale(img2imgCog, prompt, init_img_url, seed, scale, strength))
-        self.add_item(Select_img2img_batch_variations(img2imgCog, prompt, init_img_url, seed))
+        self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, None, True, model))
+        self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, None, True, model))
+        self.add_item(Select_img2img_batch_upscale(img2imgCog, prompt, init_img_url, seed, scale, strength, model))
+        self.add_item(Select_img2img_batch_variations(img2imgCog, prompt, init_img_url, seed, model))
 
 class View_img2img_variations(View):
     def __init__(self,
         bot: bot,
         prompt: str,
         init_img_url: str,
-        seed: int
+        seed: int,
+        model: str
     ):
         img2imgCog = bot.get_cog("img2img")
 
         super().__init__(timeout=None)
 
-        self.add_item(Select_img2img_variations_upscale(img2imgCog, prompt, init_img_url, seed))
+        self.add_item(Select_img2img_variations_upscale(img2imgCog, prompt, init_img_url, seed, model))
 
 class Button_img2img_retry(Button):
     def __init__(self,
@@ -151,7 +157,8 @@ class Button_img2img_retry(Button):
         scale: float,
         strength: float,
         steps: int,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Retry", emoji="🔁", row=0, custom_id="button_img2img_retry")
         self.img2imgCog = img2imgCog
@@ -161,6 +168,7 @@ class Button_img2img_retry(Button):
         self.strength = strength
         self.steps = steps
         self.batch = batch
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.img2imgCog.function_img2img(interaction,
@@ -170,7 +178,8 @@ class Button_img2img_retry(Button):
             self.scale,
             self.strength,
             self.steps,
-            self.batch
+            self.batch,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -183,7 +192,8 @@ class Button_img2img_revise(Button):
         scale: float,
         strength: float,
         steps: int,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Revise", emoji="✏", row=0, custom_id="button_img2img_revise")
         self.img2imgCog = img2imgCog
@@ -194,6 +204,7 @@ class Button_img2img_revise(Button):
         self.strength = strength
         self.steps = steps
         self.batch = batch
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await interaction.response.send_modal(
@@ -205,7 +216,8 @@ class Button_img2img_revise(Button):
                 self.scale,
                 self.strength,
                 self.steps,
-                self.batch
+                self.batch,
+                self.model
             )
         )
         return await super().callback(interaction)
@@ -217,6 +229,7 @@ class Button_img2img_batch(Button):
         init_img_url: str,
         scale: float,
         strength: float,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Batch", emoji="🔣", row=0, custom_id="button_img2img_batch")
         self.img2imgCog = img2imgCog
@@ -224,6 +237,7 @@ class Button_img2img_batch(Button):
         self.init_img_url = init_img_url
         self.scale = scale
         self.strength = strength
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.img2imgCog.function_img2img(interaction,
@@ -233,7 +247,8 @@ class Button_img2img_batch(Button):
             self.scale,
             self.strength,
             None,
-            True
+            True,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -242,19 +257,22 @@ class Button_img2img_variations(Button):
         img2imgCog: img2img,
         prompt: str,
         init_img_url: str,
-        seed: int
+        seed: int,
+        model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Variations", emoji="🔢", row=0, custom_id="button_img2img_variations")
         self.img2imgCog = img2imgCog
         self.prompt = prompt
         self.init_img_url = init_img_url
         self.seed = seed
+        self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         await self.img2imgCog.function_img2img_variations(interaction,
             self.prompt,
             self.init_img_url,
-            self.seed
+            self.seed,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -265,7 +283,8 @@ class Select_img2img_batch_upscale(Select):
         init_img_url: str,
         seed: int,
         scale: float,
-        strength: float
+        strength: float,
+        model: str
     ) -> None:
         self.img2imgCog = img2imgCog
         self.prompt = prompt
@@ -273,6 +292,7 @@ class Select_img2img_batch_upscale(Select):
         self.seed = seed
         self.scale = scale
         self.strength = strength
+        self.model = model
 
         options = []
 
@@ -289,7 +309,8 @@ class Select_img2img_batch_upscale(Select):
             self.scale,
             self.strength,
             50,
-            False
+            False,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -298,12 +319,14 @@ class Select_img2img_variations_upscale(Select):
         img2imgCog: img2img,
         prompt: str,
         init_img_url,
-        seed: int
+        seed: int,
+        model: str
     ) -> None:
         self.img2imgCog = img2imgCog
         self.prompt = prompt
         self.init_img_url = init_img_url
         self.seed = seed
+        self.model = model
 
         options = []
 
@@ -326,7 +349,8 @@ class Select_img2img_variations_upscale(Select):
             scales[column],
             strengths[row],
             50,
-            False
+            False,
+            self.model
         )
         return await super().callback(interaction)
 
@@ -335,12 +359,14 @@ class Select_img2img_batch_variations(Select):
         img2imgCog: img2img,
         prompt: str,
         init_img_url: str,
-        seed: int
+        seed: int,
+        model: str
     ) -> None:
         self.img2imgCog = img2imgCog
         self.prompt = prompt
         self.init_img_url = init_img_url
         self.seed = seed
+        self. model = model
 
         options = []
 
@@ -353,7 +379,8 @@ class Select_img2img_batch_variations(Select):
         await self.img2imgCog.function_img2img_variations(interaction,
             self.prompt,
             self.init_img_url,
-            self.seed + int(self.values[0])
+            self.seed + int(self.values[0]),
+            self.model
         )
         return await super().callback(interaction)
 
@@ -366,12 +393,14 @@ class Modal_img2img_revise(Modal):
         scale: float,
         strength: float,
         steps: int,
-        batch: bool
+        batch: bool,
+        model: str
     ) -> None:
         super().__init__(title="Revise img2img task")
         self.img2imgCog = img2imgCog
         self.batch = batch
         self.init_img_url = init_img_url
+        self.model = model
 
         self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
         self.add_item(self.promptField)
@@ -433,7 +462,8 @@ class Modal_img2img_revise(Modal):
             scale,
             strength,
             steps,
-            self.batch
+            self.batch,
+            self.model
         )
             
         return await super().on_submit(interaction)

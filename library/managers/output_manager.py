@@ -21,6 +21,12 @@ class Output_manager(object):
         index2 = subString.find(" ") if " " in subString else len(subString)
 
         return subString[0:index2]
+    
+    def get_model_name_from_ckpt(self, model: str) -> str:
+        if model == "/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
+            return "Stable Diffusion 1.4"
+        else:
+            return "Unknown"
 
     async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Image", color=0x2f3136)
@@ -53,11 +59,12 @@ class Output_manager(object):
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = txt2img.View_txt2img_single(self.bot, taskID, prompt, height, width, seed, scale, steps, plms)
+        view = txt2img.View_txt2img_single(self.bot, taskID, prompt, height, width, seed, scale, steps, plms, model)
 
         return embed, file, view
 
@@ -75,11 +82,12 @@ class Output_manager(object):
         width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = txt2img.View_txt2img_batch(self.bot, prompt, height, width, seed, scale, plms)
+        view = txt2img.View_txt2img_batch(self.bot, prompt, height, width, seed, scale, plms, model)
 
         return embed, file, view
 
@@ -96,11 +104,12 @@ class Output_manager(object):
         height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
         width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = txt2img.View_txt2img_variations(self.bot, prompt, height, width, seed, plms)
+        view = txt2img.View_txt2img_variations(self.bot, prompt, height, width, seed, plms, model)
 
         return embed, file, view
 
@@ -119,10 +128,11 @@ class Output_manager(object):
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
         steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
 
-        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = img2img.View_img2img_single(self.bot, taskID, prompt, init_img_url, seed, scale, strength, steps)
+        view = img2img.View_img2img_single(self.bot, taskID, prompt, init_img_url, seed, scale, strength, steps, model)
 
         return embed, file, view
 
@@ -140,10 +150,11 @@ class Output_manager(object):
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
 
-        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `15`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `15`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = img2img.View_img2img_batch(self.bot, prompt, init_img_url, seed, scale, strength)
+        view = img2img.View_img2img_batch(self.bot, prompt, init_img_url, seed, scale, strength, model)
 
         return embed, file, view
 
@@ -159,10 +170,11 @@ class Output_manager(object):
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
         init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
 
-        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScales: `5.0, 7.5, 10.0`\nStrengths: `0.6, 0.75, 0.9`\nSteps: `15`\nModel: `Stable Diffusion 1.4`"
+        embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScales: `5.0, 7.5, 10.0`\nStrengths: `0.6, 0.75, 0.9`\nSteps: `15`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = img2img.View_img2img_variations(self.bot, prompt, init_img_url, seed)
+        view = img2img.View_img2img_variations(self.bot, prompt, init_img_url, seed, model)
 
         return embed, file, view
 
