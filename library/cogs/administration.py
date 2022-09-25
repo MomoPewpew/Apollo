@@ -5,7 +5,7 @@ from .. import bot
 
 COG_NAME = "administration"
 
-class Administration(Cog):
+class administration(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
         super().__init__()
@@ -33,4 +33,4 @@ class Administration(Cog):
             self.bot.cog_manager.ready_up(COG_NAME)
 
 async def setup(bot) -> None:
-    await bot.add_cog(Administration(bot))
+    await bot.add_cog(administration(bot))

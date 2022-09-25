@@ -5,7 +5,7 @@ from .. import bot
 
 COG_NAME = "style"
 
-class Style(Cog):
+class style(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
         super().__init__()
@@ -36,4 +36,4 @@ class Style(Cog):
             self.bot.cog_manager.ready_up(COG_NAME)
 
 async def setup(bot) -> None:
-    await bot.add_cog(Style(bot))
+    await bot.add_cog(style(bot))

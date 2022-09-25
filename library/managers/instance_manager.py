@@ -248,12 +248,14 @@ class Instance_manager(object):
         ip_addresses = []
 
         for instance in self.ec2.describe_instances()["Reservations"][0]["Instances"]:
-            instance_ids.append(instance["InstanceId"])
-            ip_addresses.append(format(instance["PublicIpAddress"]))
+            if "PublicIpAddress" in instance:
+                instance_ids.append(instance["InstanceId"])
+                ip_addresses.append(format(instance["PublicIpAddress"]))
 
-        self.instance_ips[index] = ip_addresses[instance_ids.index(self.get_instance_id(index))]
+        if self.get_instance_id(index) in instance_ids:
+            self.instance_ips[index] = ip_addresses[instance_ids.index(self.get_instance_id(index))]
 
-        print(f"  Public IPv4 address of instance {index}: {self.instance_ips[index]}")
+            print(f"  Public IPv4 address of instance {index}: {self.instance_ips[index]}")
 
     async def is_ssm_available(self, index: int) -> bool:
         ssm_ids = []

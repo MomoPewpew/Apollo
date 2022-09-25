@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Any, Union
 from .. import bot
 from ..db import db
 import discord
 from ..cogs import txt2img, img2img
+from discord.ui import View, Select, Modal
 
 class Output_manager(object):
     def __init__(self, bot: bot) -> None:
@@ -40,9 +41,11 @@ class Output_manager(object):
         function = self.get_argument_from_instructions(instructions, "function")
         sourceURL = self.get_argument_from_instructions(instructions, "sourceURL")
 
-        embed.description = f"Function: `{function}`\nSource url: `{sourceURL}"
+        embed.description = f"Source Image: [Link]({sourceURL})\nFunction: `{function}`"
 
-        return embed, file, None
+        view = View_image(self.bot, sourceURL)
+
+        return embed, file, view
 
     async def receive_stablediffusion_txt2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Stable Diffusion txt2img", color=0x2f3136)
@@ -190,3 +193,38 @@ class Output_manager(object):
         )
 
         return embed, None, None
+
+class View_image(View):
+    def __init__(self,
+        bot: bot,
+        taskID: int
+    ):
+        super().__init__(timeout=None)
+
+        self.add_item(Select_effects(bot, taskID))
+
+class Select_effects(Select):
+    def __init__(self,
+        bot: bot,
+        taskID: int
+    ) -> None:
+        self.bot = bot
+        self.taskID = taskID
+        self.img_url: str = ""
+
+        options = [
+            discord.SelectOption(label="Style Arcane", value="arcanegan", emoji="🔮", description="Convert into the art style of the animated series Arcane"),
+        ]
+
+        super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
+
+    async def callback(self, interaction: discord.Interaction) -> Any:
+        if self.img_url == "":
+            self.img_url = db.field("SELECT output FROM tasks WHERE taskID = ?",
+                self.taskID
+            )
+        
+        if self.values[0] == "arcanegan":
+            await self.bot.get_cog("style").function_style_arcane(interaction, self.img_url)
+        
+        return await super().callback(interaction)

@@ -8,6 +8,7 @@ from discord.ext.commands import Cog
 from .. import bot
 from discord.ui import View, Modal, Button, Select
 from . import txt2img
+from ..managers import output_manager
 
 COG_NAME = "img2img"
 
@@ -115,6 +116,7 @@ class View_img2img_single(View):
         self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
         self.add_item(Button_img2img_batch(img2imgCog, prompt, init_img_url, scale, strength, model))
         self.add_item(Button_img2img_variations(img2imgCog, prompt, init_img_url, seed, model))
+        self.add_item(output_manager.Select_effects(bot, taskID))
 
 class View_img2img_batch(View):
     def __init__(self,

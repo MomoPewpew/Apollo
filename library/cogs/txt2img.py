@@ -4,6 +4,8 @@ from typing import Any
 import discord
 from discord import app_commands
 from discord.ext.commands import Cog
+
+from ..managers import output_manager
 from .. import bot
 from discord.ui import View, Button, Modal, Select
 from ..db import db
@@ -130,6 +132,7 @@ class View_txt2img_single(View):
         self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
         self.add_item(Button_txt2img_batch(txt2imgCog, prompt, height, width, scale, plms, model))
         self.add_item(Button_txt2img_variations(txt2imgCog, prompt, height, width, seed, plms, model))
+        self.add_item(output_manager.Select_effects(bot, taskID))
 
 class View_txt2img_batch(View):
     def __init__(self,
@@ -248,7 +251,7 @@ class Button_txt2img_revise(Button):
 
 class Button_txt2img_iterate(Button):
     def __init__(self,
-        img2imgCog,
+        img2imgCog: img2img,
         taskID: int,
         prompt: str,
         scale: float,
