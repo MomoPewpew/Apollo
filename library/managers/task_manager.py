@@ -278,6 +278,10 @@ class Task_manager(object):
             )
 
     def is_url_image(self, url) -> bool:
+        ##urllib is not allowed to access discord attachments, so we just check the url for those
+        if "cdn.discordapp.com/attachments/" in url and (".png" in url or ".jpeg" in url or ".jpg" in url or ".bmp" in url):
+            return True
+
         image_formats = ("image/png", "image/jpeg", "image/jpg", "image/bmp")
         site = urlopen(url)
         meta = site.info()  # get header of the http request
