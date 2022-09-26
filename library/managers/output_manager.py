@@ -213,9 +213,9 @@ class Select_effects(Select):
         self.img_url: str = ""
 
         options = [
-            discord.SelectOption(label="style_arcane", value="arcanegan", emoji="🎨", description="Convert into the art style of the animated series Arcane"),
             discord.SelectOption(label="upscale_real-esrgan", value="realesrgangan", emoji="↔", description="General purpose upscaling"),
             discord.SelectOption(label="gfpgan", value="gfpgan", emoji="↔", description="Upscaling with AI face correction"),
+            discord.SelectOption(label="style_arcane", value="arcanegan", emoji="🎨", description="Convert into the art style of the animated series Arcane"),
         ]
 
         super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
