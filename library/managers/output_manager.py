@@ -213,7 +213,8 @@ class Select_effects(Select):
         self.img_url: str = ""
 
         options = [
-            discord.SelectOption(label="Style Arcane", value="arcanegan", emoji="🔮", description="Convert into the art style of the animated series Arcane"),
+            discord.SelectOption(label="style_arcane", value="arcanegan", emoji="🎨", description="Convert into the art style of the animated series Arcane"),
+            discord.SelectOption(label="upscale_Real-ESRGAN", value="realesrgangan", emoji="↔", description="General purpose upscaling"),
         ]
 
         super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
@@ -226,5 +227,7 @@ class Select_effects(Select):
         
         if self.values[0] == "arcanegan":
             await self.bot.get_cog("style").function_style_arcane(interaction, self.img_url)
+        if self.values[0] == "realesrgangan":
+            await self.bot.get_cog("upscale").function_style_realesrgan(interaction, self.img_url)
         
         return await super().callback(interaction)
