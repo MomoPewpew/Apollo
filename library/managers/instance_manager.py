@@ -270,7 +270,7 @@ class Instance_manager(object):
 
     async def send_commands(self, index: int, commands: list[str]) -> None:
         for command in commands:
-            if "&&" in command:
+            if "&&" in command or "||" in command or ";" in command:
                 injectionDetected = True
 
         if injectionDetected:
