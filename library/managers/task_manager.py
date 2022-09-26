@@ -44,7 +44,7 @@ class Task_manager(object):
         returnString = returnString1
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
-        if (promptType is not None and promptString is not None):
+        if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
             promptTags = self.bot.user_manager.get_tags_active_csv(userID)
             if promptID := self.bot.prompt_manager.get_promptID(userID, promptString) is not None:
                 tagsOld = db.field("SELECT promptTags FROM prompts WHERE promptID = ?",
@@ -267,15 +267,30 @@ class Task_manager(object):
         
         embed, file, view = await eval('self.output_manager.receive_' + receiveType + '(taskID, file_path, file_name)')
 
-        if file == None:
-            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, view=view)
-        else:
-            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
+        user: discord.User = self.bot.get_user(int(userID))
+        userIDTemp = self.bot.user_manager.get_user_id(user)
 
-            db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
-                message.embeds[0].image.url,
+        if (self.bot.user_manager.is_user_privacy_mode(userIDTemp)):
+            if file == None:
+                await user.send(f"Here is the output for task `{taskID}`.",embed=embed)
+            else:
+                await user.send(f"Here is the output for task `{taskID}`.",embed=embed, file=file)
+            
+            db.execute("UPDATE tasks SET instructions = ?, output = ? WHERE taskID = ?",
+                "Privacy",
+                "Privacy",
                 taskID
             )
+        else:
+            if file == None:
+                await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, view=view)
+            else:
+                message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
+
+                db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+                    message.embeds[0].image.url,
+                    taskID
+                )
 
     def is_url_image(self, url) -> bool:
         ##urllib is not allowed to access discord attachments, so we just check the url for those

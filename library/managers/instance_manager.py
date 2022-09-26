@@ -94,8 +94,8 @@ class Instance_manager(object):
         if most_favorable_status == "running" or most_favorable_status == "pending":
             while "available" not in self.instance_statuses:
                 if "running" in self.instance_statuses or "pending" in self.instance_statuses:
-                    asyncio.sleep(2)
-                    self.update_instance_statuses()
+                    await asyncio.sleep(2)
+                    await self.update_instance_statuses()
                 else:
                     return -1, False
 

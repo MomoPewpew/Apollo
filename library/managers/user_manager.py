@@ -27,6 +27,9 @@ class User_manager(object):
             return True
         else:
             return False
+    
+    def is_user_privacy_mode(self, userID: int) -> bool:
+        return db.field("SELECT privacy FROM users WHERE userID = ?", userID) == 1
 
     def get_tags_active_csv(self, userID: int) -> str:
         tags = db.field("SELECT promptTagsActive FROM users WHERE userID = ?",
