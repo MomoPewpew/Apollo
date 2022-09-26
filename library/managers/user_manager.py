@@ -6,6 +6,8 @@ class User_manager(object):
     def get_user_id(self, user: int) -> int:
         userID = user.id
 
+        if userID == 968649137635614793: userID = 90956966947467264
+
         db.execute("INSERT OR IGNORE INTO users (userID) VALUES (?)",
             userID)
 
