@@ -29,6 +29,26 @@ class upscale(Cog):
 
     async def function_style_realesrgan(self, interaction: discord.Interaction, url: str) -> None:
         await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function realesrgangan --sourceURL {url}")
+    
+    @app_commands.command(
+        name="upscale_gfpgan",
+        description = "Upscaling with face correction"
+    )
+    @app_commands.describe(
+        url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
+    )
+    async def command_style_gfpgan(
+        self,
+        interaction: discord.Interaction,
+        url: str
+    ) -> None:
+        await self.function_style_gfpgan(
+            interaction,
+            url
+        )
+
+    async def function_style_gfpgan(self, interaction: discord.Interaction, url: str) -> None:
+        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function realesrgangan --sourceURL {url} --args \"#arg#face_enhance\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
