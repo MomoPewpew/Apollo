@@ -11,20 +11,21 @@ from ..managers import cog_manager, prompt_manager, task_manager, user_manager, 
 
 import logging
 
-
 APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
 GUILDS = [discord.Object(id = 1008374239688151111)]
 
 class Bot(BotBase):
+    daedalusBasePath = "/home/ubuntu/Daedalus"
+
     def __init__(self) -> None:
         self.ready = False
         self.cog_manager = cog_manager.Cog_manager(COGS)
         self.user_manager = user_manager.User_manager()
         self.prompt_manager = prompt_manager.Prompt_manager(self)
         self.task_manager = task_manager.Task_manager(self)
-        self.instance_manager = instance_manager.Instance_manager()
+        self.instance_manager = instance_manager.Instance_manager(self)
 
         intents = Intents.default()
         intents.members = True

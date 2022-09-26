@@ -32,7 +32,7 @@ class style(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function arcanegan --sourceURL \"{url}\"")
+        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function arcanegan --sourceURL \"{url}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:

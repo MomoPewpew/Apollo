@@ -35,7 +35,7 @@ class txt2img(Cog):
     )
     @app_commands.choices(model=
         [
-            app_commands.Choice(name="Stable Diffusion 1.4", value="/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+            app_commands.Choice(name="Stable Diffusion 1.4", value="{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         ]
     )
     async def command_txt2img(
@@ -49,7 +49,7 @@ class txt2img(Cog):
         steps: int = 50,
         plms: bool = True,
         batch: bool = False,
-        model: app_commands.Choice[str] = "/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
+        model: app_commands.Choice[str] = "{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
     ) -> None:
         await self.function_txt2img(
             interaction,
@@ -84,9 +84,9 @@ class txt2img(Cog):
 
         plmsString = " #arg#plms" if plms else ""
         if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString} #arg#ckpt {model}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString} #arg#ckpt {model}\"")
         else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString} #arg#ckpt {model}\"")
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString} #arg#ckpt {model}\"")
 
     async def function_txt2img_variations(self,
         interaction: discord.Interaction,
@@ -99,7 +99,7 @@ class txt2img(Cog):
     ) -> None:
         plmsString = " #arg#plms" if plms else ""
 
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString} #arg#ckpt {model}\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString} #arg#ckpt {model}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:

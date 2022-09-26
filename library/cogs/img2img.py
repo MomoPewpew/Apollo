@@ -33,7 +33,7 @@ class img2img(Cog):
     )
     @app_commands.choices(model=
         [
-            app_commands.Choice(name="Stable Diffusion 1.4", value="/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+            app_commands.Choice(name="Stable Diffusion 1.4", value="{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         ]
     )
     async def command_img2img(
@@ -46,7 +46,7 @@ class img2img(Cog):
         strength: float = 0.75,
         steps: int = 50,
         batch: bool = False,
-        model: app_commands.Choice[str] = "/home/ubuntu/Daedalus/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
+        model: app_commands.Choice[str] = "{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
     ) -> None:
         await self.function_img2img(
             interaction,
@@ -78,9 +78,9 @@ class img2img(Cog):
         seed = int(random.randrange(4294966294)) if seed is None else seed
         strength = 0.0 if strength < 0.0 else 1.0 if strength > 1.0 else strength
         if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_batch", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgBatch --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ckpt {model}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_batch", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function img2imgBatch --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ckpt {model}\"")
         else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_img2img_single", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgSingle --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ddim_steps {steps} #arg#ckpt {model}\"")
+            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_img2img_single", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function img2imgSingle --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#scale {scale} #arg#strength {strength} #arg#ddim_steps {steps} #arg#ckpt {model}\"")
 
     async def function_img2img_variations(self,
         interaction: discord.Interaction,
@@ -93,7 +93,7 @@ class img2img(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#ckpt {model}\"")
+        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#ckpt {model}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:

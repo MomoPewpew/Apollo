@@ -6,6 +6,7 @@ from typing import Union
 import boto3
 from botocore.exceptions import ClientError
 from ..db import db
+from .. import bot
 
 class Instance_manager(object):
     ec2 = boto3.client('ec2',region_name='eu-west-2')
@@ -13,7 +14,8 @@ class Instance_manager(object):
     instance_ips = []
     instance_statuses = []
 
-    def __init__(self) -> None:
+    def __init__(self, bot: bot) -> None:
+        self.bot = bot
         self.instance_ids = self.read_credentials()
         for append in range(self.get_total_instances()):
             self.instance_ips.append("")
@@ -310,4 +312,4 @@ class Instance_manager(object):
             except Exception as e:
                 print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-        os.system(f"scp -o \"StrictHostKeyChecking no\" -i daedaluspem.pem ubuntu@{self.get_instance_ip(index)}:/home/ubuntu/Daedalus/out/* ./out/instance_{index}")
+        os.system(f"scp -o \"StrictHostKeyChecking no\" -i daedaluspem.pem ubuntu@{self.get_instance_ip(index)}:{self.bot.daedalusBasePath}/out/* ./out/instance_{index}")
