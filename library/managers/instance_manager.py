@@ -269,6 +269,13 @@ class Instance_manager(object):
         await self.send_commands(index, [command])
 
     async def send_commands(self, index: int, commands: list[str]) -> None:
+        for command in commands:
+            if "&&" in command:
+                injectionDetected = True
+
+        if injectionDetected:
+            commands = ["python3 /home/ubuntu/Daedalus/daedalus.py --function nothing"]
+
         instance_id = self.get_instance_id(index)
         
         print("Sending commands:")
