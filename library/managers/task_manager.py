@@ -86,6 +86,10 @@ class Task_manager(object):
             await self.task_loop(index)
 
     async def add_task(self, receiveType: str, userID: int, channelID: int, instructions: str, estimatedTime: int, boot_new: bool) -> None:
+        if "&&" in instructions or "||" in instructions or ";" in instructions:
+            await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} A potential code injection was detected in the task that you added so it was canceled. Please ensure that none of your instructions include the symbols `&& or || or ;`")
+            return
+
         db.execute("INSERT INTO tasks (receiveType, userID, channelID, instructions, estimatedTime) VALUES (?, ?, ?, ?, ?)",
             receiveType,
             userID,
