@@ -11,7 +11,7 @@ class upscale(Cog):
         super().__init__()
 
     @app_commands.command(
-        name="upscale_Real-ESRGAN",
+        name="upscale_real-esrgan",
         description = "General purpose image upscaling"
     )
     @app_commands.describe(
