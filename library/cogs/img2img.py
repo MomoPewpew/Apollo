@@ -71,6 +71,10 @@ class img2img(Cog):
         batch: bool,
         model: str
     ) -> None:
+        if not self.bot.task_manager.is_url_image(init_img_url):
+            await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
         seed = int(random.randrange(4294966294)) if seed is None else seed
         strength = 0.0 if strength < 0.0 else 1.0 if strength > 1.0 else strength
         if batch:
@@ -85,6 +89,10 @@ class img2img(Cog):
         seed: int,
         model: str
     ) -> None:
+        if not self.bot.task_manager.is_url_image(init_img_url):
+            await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
         await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_img2img_variations", f"python3 /home/ubuntu/Daedalus/daedalus.py --function img2imgVariations --sourceURL {init_img_url} --args \"#arg#prompt #qt#{prompt}#qt# #arg#seed {seed} #arg#ckpt {model}\"")
 
     @Cog.listener()

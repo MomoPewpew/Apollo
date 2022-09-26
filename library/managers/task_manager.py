@@ -2,6 +2,7 @@ import math
 import os
 import time
 from typing import Union
+from urllib.request import urlopen
 from ..db import db
 from datetime import datetime
 from .. import bot
@@ -275,3 +276,12 @@ class Task_manager(object):
                 message.embeds[0].image.url,
                 taskID
             )
+
+    def is_url_image(self, url) -> bool:
+        image_formats = ("image/png", "image/jpeg", "image/jpg", "image/bmp")
+        site = urlopen(url)
+        meta = site.info()  # get header of the http request
+        if meta["content-type"] in image_formats:  # check if the content-type is a image
+            return True
+        else:
+            return False

@@ -28,6 +28,10 @@ class style(Cog):
         )
 
     async def function_style_arcane(self, interaction: discord.Interaction, url: str) -> None:
+        if not self.bot.task_manager.is_url_image(url):
+            await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
         await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function arcanegan --sourceURL \"{url}\"")
 
     @Cog.listener()

@@ -28,6 +28,10 @@ class upscale(Cog):
         )
 
     async def function_style_realesrgan(self, interaction: discord.Interaction, url: str) -> None:
+        if not self.bot.task_manager.is_url_image(url):
+            await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
         await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function realesrgangan --sourceURL \"{url}\"")
     
     @app_commands.command(
@@ -48,6 +52,10 @@ class upscale(Cog):
         )
 
     async def function_style_gfpgan(self, interaction: discord.Interaction, url: str) -> None:
+        if not self.bot.task_manager.is_url_image(url):
+            await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
         await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 /home/ubuntu/Daedalus/daedalus.py --function realesrgangan --sourceURL \"{url}\" --args \"#arg#face_enhance\"")
 
     @Cog.listener()
