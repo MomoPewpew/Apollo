@@ -24,7 +24,7 @@ class Output_manager(object):
         return subString[0:index2]
     
     def get_model_name_from_ckpt(self, model: str) -> str:
-        if model == "{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
+        if model == f"{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
             return "Stable Diffusion 1.4"
         else:
             return "Unknown"
