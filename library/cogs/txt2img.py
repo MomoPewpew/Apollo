@@ -14,8 +14,11 @@ from . import img2img
 COG_NAME = "txt2img"
 
 class txt2img(Cog):
+    daedalusBasePath = ""
+
     def __init__(self, bot:bot) -> None:
         self.bot = bot
+        daedalusBasePath = self.bot.daedalusBasePath
         super().__init__()
 
     @app_commands.command(
@@ -35,7 +38,7 @@ class txt2img(Cog):
     )
     @app_commands.choices(model=
         [
-            app_commands.Choice(name="Stable Diffusion 1.4", value="{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+            app_commands.Choice(name="Stable Diffusion 1.4", value=f"{daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         ]
     )
     async def command_txt2img(
@@ -49,7 +52,7 @@ class txt2img(Cog):
         steps: int = 50,
         plms: bool = True,
         batch: bool = False,
-        model: app_commands.Choice[str] = "{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
+        model: app_commands.Choice[str] = f"{daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
     ) -> None:
         await self.function_txt2img(
             interaction,
