@@ -112,7 +112,6 @@ async def setup(bot) -> None:
 class View_txt2img_single(View):
     def __init__(self,
         bot: bot,
-        taskID: int,
         prompt: str,
         height: int,
         width: int,
@@ -129,10 +128,10 @@ class View_txt2img_single(View):
 
         self.add_item(Button_txt2img_retry(txt2imgCog, prompt, height, width, scale, steps, plms, False, model))
         self.add_item(Button_txt2img_revise(txt2imgCog, prompt, height, width, seed, scale, steps, plms, False, model))
-        self.add_item(Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
+        self.add_item(Button_txt2img_iterate(img2imgCog, prompt, scale, model))
         self.add_item(Button_txt2img_batch(txt2imgCog, prompt, height, width, scale, plms, model))
         self.add_item(Button_txt2img_variations(txt2imgCog, prompt, height, width, seed, plms, model))
-        self.add_item(output_manager.Select_effects(bot, taskID))
+        self.add_item(output_manager.Select_effects(bot))
 
 class View_txt2img_batch(View):
     def __init__(self,
@@ -252,30 +251,23 @@ class Button_txt2img_revise(Button):
 class Button_txt2img_iterate(Button):
     def __init__(self,
         img2imgCog: img2img,
-        taskID: int,
         prompt: str,
         scale: float,
         model: str
     ) -> None:
         super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate")
-        self.init_img_url = ""
+        self.img_url: str = ""
         self.img2imgCog = img2imgCog
-        self.taskID = taskID
         self.prompt = prompt
         self.scale = scale
         self.model = model
 
     async def callback(self, interaction: discord.Interaction) -> Any:
-        if self.init_img_url == "":
-            self.init_img_url = db.field("SELECT output FROM tasks WHERE taskID = ?",
-                self.taskID
-            )
-
         await interaction.response.send_modal(
             img2img.Modal_img2img_revise(
                 self.img2imgCog,
                 self.prompt,
-                self.init_img_url,
+                self.img_url,
                 "",
                 self.scale,
                 0.75,

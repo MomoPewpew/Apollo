@@ -24,7 +24,7 @@ class Output_manager(object):
         return subString[0:index2]
     
     def get_model_name_from_ckpt(self, model: str) -> str:
-        if model == f"{self.bot.daedalusBasePath}/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
+        if model == f"/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
             return "Stable Diffusion 1.4"
         else:
             return "Unknown"
@@ -43,7 +43,7 @@ class Output_manager(object):
 
         embed.description = f"Source Image: [Link]({sourceURL})\nFunction: `{function}`"
 
-        view = View_image(self.bot, sourceURL)
+        view = View_image(self.bot)
 
         return embed, file, view
 
@@ -62,12 +62,12 @@ class Output_manager(object):
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = txt2img.View_txt2img_single(self.bot, taskID, prompt, height, width, seed, scale, steps, plms, model)
+        view = txt2img.View_txt2img_single(self.bot, prompt, height, width, seed, scale, steps, plms, model)
 
         return embed, file, view
 
@@ -85,7 +85,7 @@ class Output_manager(object):
         width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
@@ -107,7 +107,7 @@ class Output_manager(object):
         height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
         width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
@@ -131,11 +131,11 @@ class Output_manager(object):
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
         steps = int(self.get_encoded_argument_from_instructions(instructions, "ddim_steps"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
 
         embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `{steps}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
-        view = img2img.View_img2img_single(self.bot, taskID, prompt, init_img_url, seed, scale, strength, steps, model)
+        view = img2img.View_img2img_single(self.bot, prompt, init_img_url, seed, scale, strength, steps, model)
 
         return embed, file, view
 
@@ -153,7 +153,7 @@ class Output_manager(object):
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
 
         embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScale: `{scale}`\nStrength: `{strength}`\nSteps: `15`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
@@ -173,7 +173,7 @@ class Output_manager(object):
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
         init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
-        model = self.get_encoded_argument_from_instructions(instructions, "ckpt")
+        model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
 
         embed.description = f"Initiation Image: [Link]({init_img_url})\nPrompt: `{prompt}`\nSeed: `{seed}`\nScales: `5.0, 7.5, 10.0`\nStrengths: `0.6, 0.75, 0.9`\nSteps: `15`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
@@ -196,20 +196,17 @@ class Output_manager(object):
 
 class View_image(View):
     def __init__(self,
-        bot: bot,
-        taskID: int
+        bot: bot
     ):
         super().__init__(timeout=None)
 
-        self.add_item(Select_effects(bot, taskID))
+        self.add_item(Select_effects(bot))
 
 class Select_effects(Select):
     def __init__(self,
-        bot: bot,
-        taskID: int
+        bot: bot
     ) -> None:
         self.bot = bot
-        self.taskID = taskID
         self.img_url: str = ""
 
         options = [
@@ -221,11 +218,6 @@ class Select_effects(Select):
         super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
-        if self.img_url == "":
-            self.img_url = db.field("SELECT output FROM tasks WHERE taskID = ?",
-                self.taskID
-            )
-        
         if self.values[0] == "arcanegan":
             await self.bot.get_cog("style").function_style_arcane(interaction, self.img_url)
         elif self.values[0] == "realesrgangan":

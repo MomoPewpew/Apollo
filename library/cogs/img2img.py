@@ -106,7 +106,6 @@ async def setup(bot) -> None:
 class View_img2img_single(View):
     def __init__(self,
         bot: bot,
-        taskID: int,
         prompt: str,
         init_img_url: str,
         seed: int,
@@ -121,10 +120,10 @@ class View_img2img_single(View):
 
         self.add_item(Button_img2img_retry(img2imgCog, prompt, init_img_url, scale, strength, steps, False, model))
         self.add_item(Button_img2img_revise(img2imgCog, prompt, init_img_url, seed, scale, strength, steps, False, model))
-        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, taskID, prompt, scale, model))
+        self.add_item(txt2img.Button_txt2img_iterate(img2imgCog, prompt, scale, model))
         self.add_item(Button_img2img_batch(img2imgCog, prompt, init_img_url, scale, strength, model))
         self.add_item(Button_img2img_variations(img2imgCog, prompt, init_img_url, seed, model))
-        self.add_item(output_manager.Select_effects(bot, taskID))
+        self.add_item(output_manager.Select_effects(bot))
 
 class View_img2img_batch(View):
     def __init__(self,
