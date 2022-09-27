@@ -39,7 +39,7 @@ class Output_manager(object):
         )
 
         function = self.get_argument_from_instructions(instructions, "function")
-        sourceURL = self.get_argument_from_instructions(instructions, "sourceURL")
+        sourceURL = self.get_argument_from_instructions(instructions, "sourceURL")[1:-1]
 
         embed.description = f"Source Image: [Link]({sourceURL})\nFunction: `{function}`"
 
@@ -126,7 +126,7 @@ class Output_manager(object):
         )
 
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
-        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")[1:-1]
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
@@ -149,7 +149,7 @@ class Output_manager(object):
         )
 
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
-        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")[1:-1]
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         scale = float(self.get_encoded_argument_from_instructions(instructions, "scale"))
         strength = float(self.get_encoded_argument_from_instructions(instructions, "strength"))
@@ -171,7 +171,7 @@ class Output_manager(object):
         )
 
         prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
-        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")
+        init_img_url = self.get_argument_from_instructions(instructions, "sourceURL")[1:-1]
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
         model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
 
