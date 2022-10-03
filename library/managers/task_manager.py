@@ -293,9 +293,10 @@ class Task_manager(object):
                     taskID
                 )
 
-                for child in view.children:
-                    if (hasattr(child, "img_url")):
-                        child.img_url = image_url
+                if view is not None:
+                    for child in view.children:
+                        if (hasattr(child, "img_url")):
+                            child.img_url = image_url
 
     def is_url_image(self, url) -> bool:
         ##urllib is not allowed to access discord attachments, so we just check the url for those

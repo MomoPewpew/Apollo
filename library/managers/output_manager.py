@@ -29,6 +29,12 @@ class Output_manager(object):
         else:
             return "Unknown"
 
+    def get_3d_inpaint_style_from_config(self, config: str) -> str:
+        if config == "/plugins/3d-photo-inpainting/dolly_zoom_in.yml":
+            return "Dolly Zoom-In"
+        else:
+            return "Unknown"
+
     async def receive_image(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
         embed = discord.Embed(title="Image", color=0x2f3136)
         file = discord.File(file_path, filename=filename)
@@ -181,18 +187,22 @@ class Output_manager(object):
 
         return embed, file, view
 
-    async def receive_prompt(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        ##TODO: Read file
-        output_txt = ""
+    async def receive_3dInPainting(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="3D Inpainting", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
 
-        embed = discord.Embed(title="Image", description=f"Task {taskID}", color=0x2f3136)
-
-        db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
-            output_txt,
+        instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
         )
 
-        return embed, None, None
+        sourceURL = self.get_argument_from_instructions(instructions, "sourceURL")[1:-1]
+        style = self.get_encoded_argument_from_instructions(instructions, "config").replace(self.bot.daedalusBasePath, "")
+        num_frames = int(self.get_encoded_argument_from_instructions(instructions, "num_frames"))
+        fps = int(self.get_encoded_argument_from_instructions(instructions, "fps"))
+
+        embed.description = f"Source Image: [Link]({sourceURL})\nStyle: `{self.get_3d_inpaint_style_from_config(style)}`\nnum_frames: `{num_frames}`\nfps: `{fps}`"
+
+        return embed, file, None
 
 class View_image(View):
     def __init__(self,
