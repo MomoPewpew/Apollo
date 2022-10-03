@@ -6,7 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext.commands import Cog
 from .. import bot
-from discord.ui import View, Modal, Button, Select
+from discord.ui import View, Modal, Button, Select, TextInput
 from . import txt2img
 from ..managers import output_manager
 
@@ -411,17 +411,17 @@ class Modal_img2img_revise(Modal):
         self.init_img_url = init_img_url
         self.model = model
 
-        self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
+        self.promptField = TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
         self.add_item(self.promptField)
-        self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
+        self.seedField = TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
         self.add_item(self.seedField)
-        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
+        self.scaleField = TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
         self.add_item(self.scaleField)
-        self.strengthField = discord.ui.TextInput(label="Strength", style=discord.TextStyle.short, placeholder="Float", default=str(strength), required=True)
+        self.strengthField = TextInput(label="Strength", style=discord.TextStyle.short, placeholder="Float", default=str(strength), required=True)
         self.add_item(self.strengthField)
 
         if not self.batch:
-            self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
+            self.stepsField = TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
             self.add_item(self.stepsField)
 
     async def on_submit(self, interaction: discord.Interaction) -> None:

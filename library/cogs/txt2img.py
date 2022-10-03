@@ -7,7 +7,7 @@ from discord.ext.commands import Cog
 
 from ..managers import output_manager
 from .. import bot
-from discord.ui import View, Button, Modal, Select
+from discord.ui import View, Button, Modal, Select, TextInput
 from ..db import db
 from . import img2img
 
@@ -250,7 +250,7 @@ class Button_txt2img_revise(Button):
 
 class Button_txt2img_iterate(Button):
     def __init__(self,
-        img2imgCog: img2img,
+        img2imgCog: img2img.img2img,
         prompt: str,
         scale: float,
         model: str
@@ -477,16 +477,16 @@ class Modal_txt2img_revise(Modal):
         self.batch = batch
         self.model = model
 
-        self.promptField = discord.ui.TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
+        self.promptField = TextInput(label="Prompt", style=discord.TextStyle.paragraph, placeholder="String", default=prompt, required=True)
         self.add_item(self.promptField)
-        self.dimensionsField = discord.ui.TextInput(label="Dimensions (width x height)", style=discord.TextStyle.short, placeholder="Integer x Integer (multiples of  64)", default=f"{width}x{height}", required=True)
+        self.dimensionsField = TextInput(label="Dimensions (width x height)", style=discord.TextStyle.short, placeholder="Integer x Integer (multiples of  64)", default=f"{width}x{height}", required=True)
         self.add_item(self.dimensionsField)
-        self.seedField = discord.ui.TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
+        self.seedField = TextInput(label="Seed", style=discord.TextStyle.short, placeholder="Integer (random if empty)", default=seed, required=False)
         self.add_item(self.seedField)
-        self.scaleField = discord.ui.TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
+        self.scaleField = TextInput(label="Scale", style=discord.TextStyle.short, placeholder="Float", default=str(scale), required=True)
         self.add_item(self.scaleField)
         if not self.batch:
-            self.stepsField = discord.ui.TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
+            self.stepsField = TextInput(label="Steps", style=discord.TextStyle.short, placeholder="Integer", default=steps, required=True)
             self.add_item(self.stepsField)
             
     async def on_submit(self, interaction: discord.Interaction) -> None:
