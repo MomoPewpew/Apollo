@@ -1,5 +1,4 @@
 from discord.ext.commands import Cog
-from xmlrpc.client import Boolean
 
 class Cog_manager(object):
     def __init__(self, cogs) -> None:
@@ -11,5 +10,5 @@ class Cog_manager(object):
         setattr(self, cog, True)
         print(f"  {cog} cog ready")
 
-    def all_ready(self) -> Boolean:
+    def all_ready(self) -> bool:
         return all([getattr(self, cog) for cog in self.cogs])

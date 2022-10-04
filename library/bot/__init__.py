@@ -7,7 +7,7 @@ from discord import Intents
 from discord.ext.commands import Bot as BotBase, CommandNotFound, Context, errors
 
 from ..db import db
-from ..managers import cog_manager, prompt_manager, task_manager, user_manager, instance_manager
+from ..managers import cog_manager, prompt_manager, task_manager, user_manager, instance_manager, computerender_manager
 
 import logging
 
@@ -26,6 +26,7 @@ class Bot(BotBase):
         self.prompt_manager = prompt_manager.Prompt_manager(self)
         self.task_manager = task_manager.Task_manager(self)
         self.instance_manager = instance_manager.Instance_manager(self)
+        self.computerender_manager = computerender_manager.Computerender_manager(self)
 
         intents = Intents.default()
         intents.members = True
@@ -43,6 +44,9 @@ class Bot(BotBase):
 
         with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
             self.TOKEN = tf.read()
+        
+        with open("./library/bot/computerender.0", "r", encoding="utf-8") as tf:
+            self.COMPUTERENDERKEY = tf.read()
         
         asyncio.run(self.main())
         return super().run()

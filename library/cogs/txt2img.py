@@ -82,11 +82,23 @@ class txt2img(Cog):
 
         seed = int(random.randrange(4294966294)) if seed is None else seed
 
-        plmsString = " #arg#plms" if plms else ""
-        if batch:
-            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
-        else:
-            await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
+        await self.bot.computerender_manager.function_computerender(interaction,
+            prompt,
+            height,
+            width,
+            seed,
+            scale,
+            steps,
+            False,
+            batch
+        )
+
+        ##This is the code that generates images via AWS. It's currently commented out because we use ComputerEnder
+        #plmsString = " #arg#plms" if plms else ""
+        #if batch:
+        #    await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_batch", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgBatch --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
+        #else:
+        #    await self.bot.task_manager.task_command_main(interaction, 180, "txt2img", prompt, "stablediffusion_txt2img_single", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgSingle --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed} #arg#scale {scale} #arg#ddim_steps {steps}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
 
     async def function_txt2img_variations(self,
         interaction: discord.Interaction,
