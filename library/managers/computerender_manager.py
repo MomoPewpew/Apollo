@@ -14,7 +14,7 @@ class Computerender_manager(object):
     def __init__(self, bot: bot) -> None:
         self.bot = bot
     
-    async def function_computerender(self,
+    async def function_computerender_txt2img(self,
         interaction: discord.Interaction,
         prompt: str,
         height: int,
@@ -23,7 +23,8 @@ class Computerender_manager(object):
         scale: float,
         steps: int,
         plms: bool,
-        batch: bool
+        batch: bool,
+        variations: bool
     ) -> None:
         if batch:
             await self.respond(interaction, "txt2img", prompt, 45)
@@ -51,8 +52,8 @@ class Computerender_manager(object):
             if not os.path.exists(path):
                 os.mkdir(path)
             
-            for fileName in os.listdir(path):
-                file_path = os.path.join(path, fileName)
+            for filename in os.listdir(path):
+                file_path = os.path.join(path, filename)
                 try:
                     if os.path.isfile(file_path) or os.path.islink(file_path):
                         os.unlink(file_path)
@@ -62,39 +63,83 @@ class Computerender_manager(object):
                     print('Failed to delete %s. Reason: %s' % (file_path, e))
 
             baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
-            fileName = f"batch-{baseFileName}-{seed}.png"
-            file_path = f"{path}/{fileName}"
+            filename = f"batch-{baseFileName}-{seed}.png"
+            file_path = f"{path}/{filename}"
 
             grid.save(file_path, "png")
             
-            embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_batch_Objects(file_path, fileName, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+            embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_batch_Objects(file_path, filename, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         else:
-            await self.respond(interaction, "txt2img", prompt, 10)
+            if variations:
+                await self.respond(interaction, "txt2img", prompt, 45)
 
-            img = await self.computerender_single(prompt, height, width, seed, scale, steps, plms)
+                img = []
 
-            path = os.path.join("./out/", f"instance_-1")
-            if not os.path.exists(path):
-                os.mkdir(path)
-            
-            for fileName in os.listdir(path):
-                file_path = os.path.join(path, fileName)
-                try:
-                    if os.path.isfile(file_path) or os.path.islink(file_path):
-                        os.unlink(file_path)
-                    elif os.path.isdir(file_path):
-                        shutil.rmtree(file_path)
-                except Exception as e:
-                    print('Failed to delete %s. Reason: %s' % (file_path, e))
+                pricePerStep = ((width * height) / (512 * 512)) * 0.0025 / 50
+                steps = max(15, int(0.001 / pricePerStep))
 
-            baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
-            fileName = f"{baseFileName}-{seed}.png"
-            file_path = f"{path}/{fileName}"
+                for n in range(9):
+                    img.append(await self.computerender_single(prompt, height, width, seed, 3.0 + (n * 1.0), steps, plms))
+                
+                new_size = ((width * 3 + 8), (height * 3 + 8))
+                grid = Image.new("RGB", new_size)
 
-            img.save(file_path, "png")
-            
-            embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_single_Objects(file_path, fileName, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+                for n in range(len(img)):
+                    row = math.floor(n / 3)
+                    column = (n %3)
 
+                    grid.paste(img[n], (((2 + width) * column + 2), ((2 + height) * row + 2)))
+                
+                grid = grid.resize((width, height), Image.ANTIALIAS)
+
+                path = os.path.join("./out/", f"instance_-1")
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                for filename in os.listdir(path):
+                    file_path = os.path.join(path, filename)
+                    try:
+                        if os.path.isfile(file_path) or os.path.islink(file_path):
+                            os.unlink(file_path)
+                        elif os.path.isdir(file_path):
+                            shutil.rmtree(file_path)
+                    except Exception as e:
+                        print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+                baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+                filename = f"variations-{baseFileName}-{seed}.png"
+                file_path = f"{path}/{filename}"
+
+                grid.save(file_path, "png")
+                
+                embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_variations_Objects(file_path, filename, prompt, height, width, seed, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+            else:
+                await self.respond(interaction, "txt2img", prompt, 10)
+
+                img = await self.computerender_single(prompt, height, width, seed, scale, steps, plms)
+
+                path = os.path.join("./out/", f"instance_-1")
+                if not os.path.exists(path):
+                    os.mkdir(path)
+                
+                for filename in os.listdir(path):
+                    file_path = os.path.join(path, filename)
+                    try:
+                        if os.path.isfile(file_path) or os.path.islink(file_path):
+                            os.unlink(file_path)
+                        elif os.path.isdir(file_path):
+                            shutil.rmtree(file_path)
+                    except Exception as e:
+                        print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+                baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+                filename = f"{baseFileName}-{seed}.png"
+                file_path = f"{path}/{filename}"
+
+                img.save(file_path, "png")
+                
+                embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_single_Objects(file_path, filename, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+        
         user = interaction.user
         userID = user.id
         channelID = interaction.channel.id

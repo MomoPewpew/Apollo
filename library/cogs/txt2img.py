@@ -84,7 +84,7 @@ class txt2img(Cog):
         seed = int(random.randrange(4294966294)) if seed is None else seed
 
         if self.useComputerEnder:
-            await self.bot.computerender_manager.function_computerender(interaction,
+            await self.bot.computerender_manager.function_computerender_txt2img(interaction,
                 prompt,
                 height,
                 width,
@@ -92,7 +92,8 @@ class txt2img(Cog):
                 scale,
                 steps,
                 False,
-                batch
+                batch,
+                False
             )
         else:
             plmsString = " #arg#plms" if plms else ""
@@ -110,9 +111,22 @@ class txt2img(Cog):
         plms: bool,
         model: str
     ) -> None:
-        plmsString = " #arg#plms" if plms else ""
+        if self.useComputerEnder:
+            await self.bot.computerender_manager.function_computerender_txt2img(interaction,
+                prompt,
+                height,
+                width,
+                seed,
+                None,
+                None,
+                False,
+                False,
+                True
+            )
+        else:
+            plmsString = " #arg#plms" if plms else ""
 
-        await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
+            await self.bot.task_manager.task_command_main(interaction, 240, "txt2img", prompt, "stablediffusion_txt2img_variations", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function txt2imgVariations --args \"#arg#prompt #qt#{prompt}#qt# #arg#H {height} #arg#W {width} #arg#seed {seed}{plmsString} #arg#ckpt {self.bot.daedalusBasePath}{model}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
