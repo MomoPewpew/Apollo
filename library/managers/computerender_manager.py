@@ -1,7 +1,9 @@
+import io
 import os
 import shutil
 from urllib import parse
 from urllib.request import Request, urlopen
+import aiohttp
 import discord
 
 from ..cogs import txt2img
@@ -98,9 +100,11 @@ class Computerender_manager(object):
         steps: int,
         plms: bool
     ) -> Image:
-        prompt = parse.quote(prompt)
-        url = f"https://api.computerender.com/generate/{prompt}?seed={seed}&w={width}&h={height}&guidance={scale}&iterations={steps}"
-        req = Request(url)
-        req.add_header("Authorization", f"X-API-Key {self.bot.COMPUTERENDERKEY}")
-        print(f"Fetching computerender img at {url}")
-        return Image.open(urlopen(req))
+        async with aiohttp.ClientSession(loop=self.bot.loop, headers={"Authorization" : f"X-API-Key {self.bot.COMPUTERENDERKEY}"}) as session:
+            prompt = parse.quote(prompt)
+            url = f"https://api.computerender.com/generate/{prompt}?seed={seed}&w={width}&h={height}&guidance={scale}&iterations={steps}"
+            print(f"Fetching computerender img at {url}")
+            async with session.get(url) as r:
+                buffer = io.BytesIO(await r.read())
+
+        return Image.open(buffer)

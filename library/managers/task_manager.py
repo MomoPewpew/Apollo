@@ -173,7 +173,7 @@ class Task_manager(object):
         queueTimes = []
         estimatedTimesRemaining = []
 
-        for append in range(self.bot.instance_manager.get_total_instances()):
+        for _ in range(self.bot.instance_manager.get_total_instances()):
             queueTimes.append(0)
 
         if len(servers) > 0:
