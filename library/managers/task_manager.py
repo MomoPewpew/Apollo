@@ -43,7 +43,7 @@ class Task_manager(object):
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
         if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
-            self.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
+            await self.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
     
