@@ -25,9 +25,9 @@ class Computerender_manager(object):
         plms: bool,
         batch: bool
     ) -> None:
-        await self.respond(interaction, "txt2img", prompt, 10)
-
         if batch:
+            await self.respond(interaction, "txt2img", prompt, 45)
+
             img = []
 
             pricePerStep = ((width * height) / (512 * 512)) * 0.0025 / 50
@@ -67,16 +67,10 @@ class Computerender_manager(object):
 
             grid.save(file_path, "png")
             
-            embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x2f3136)
-            file = discord.File(file_path, filename=fileName)
-            embed.set_image(url=f"attachment://{fileName}")
-
-            model = "Stable Diffusion 1.4"
-
-            embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{model}`"
-
-            view = txt2img.View_txt2img_batch(self.bot, prompt, height, width, seed, scale, plms, model)
+            embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_batch_Objects(file_path, fileName, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
         else:
+            await self.respond(interaction, "txt2img", prompt, 10)
+
             img = await self.computerender_single(prompt, height, width, seed, scale, steps, plms)
 
             path = os.path.join("./out/", f"instance_-1")
@@ -99,15 +93,7 @@ class Computerender_manager(object):
 
             img.save(file_path, "png")
             
-            embed = discord.Embed(title="Stable Diffusion txt2img", color=0x2f3136)
-            file = discord.File(file_path, filename=fileName)
-            embed.set_image(url=f"attachment://{fileName}")
-
-            model = "Stable Diffusion 1.4"
-
-            embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{model}`"
-
-            view = txt2img.View_txt2img_single(self.bot, prompt, height, width, seed, scale, steps, plms, model)
+            embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_single_Objects(file_path, fileName, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
 
         user = interaction.user
         userID = user.id

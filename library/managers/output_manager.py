@@ -56,10 +56,6 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_txt2img_single(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img", color=0x2f3136)
-        file = discord.File(file_path, filename=filename)
-        embed.set_image(url=f"attachment://{filename}")
-
         instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
         )
@@ -73,6 +69,13 @@ class Output_manager(object):
         model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
+        return self.receive_stablediffusion_txt2img_single_Objects(file_path, filename, prompt, height, width, seed, scale, steps, plms, model)
+
+    def receive_stablediffusion_txt2img_single_Objects(self, file_path: str, filename: str, prompt: str, height: int, width: int, seed: int, scale: float, steps: int, plms: bool, model: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion txt2img", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
         embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
         view = txt2img.View_txt2img_single(self.bot, prompt, height, width, seed, scale, steps, plms, model)
@@ -80,10 +83,6 @@ class Output_manager(object):
         return embed, file, view
 
     async def receive_stablediffusion_txt2img_batch(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x2f3136)
-        file = discord.File(file_path, filename=filename)
-        embed.set_image(url=f"attachment://{filename}")
-
         instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
         )
@@ -96,17 +95,20 @@ class Output_manager(object):
         model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
+        return self.receive_stablediffusion_txt2img_batch_Objects(file_path, filename, prompt, height, width, seed, scale, 15, plms, model)
+
+    def receive_stablediffusion_txt2img_batch_Objects(self, file_path: str, filename: str, prompt: str, height: int, width: int, seed: int, scale: float, steps: int, plms: bool, model: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeeds: `{seed} - {seed + 8}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
         view = txt2img.View_txt2img_batch(self.bot, prompt, height, width, seed, scale, plms, model)
 
         return embed, file, view
 
     async def receive_stablediffusion_txt2img_variations(self, taskID: int, file_path: str, filename: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
-        embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x2f3136)
-        file = discord.File(file_path, filename=filename)
-        embed.set_image(url=f"attachment://{filename}")
-
         instructions = db.field("SELECT instructions FROM tasks WHERE taskID = ?",
             taskID
         )
@@ -118,7 +120,14 @@ class Output_manager(object):
         model = self.get_encoded_argument_from_instructions(instructions, "ckpt").replace(self.bot.daedalusBasePath, "")
         plms = "#arg#plms" in instructions
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `15`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
+        return self.receive_stablediffusion_txt2img_variations_Objects(file_path, filename, prompt, height, width, seed, 15, plms, model)
+
+    def receive_stablediffusion_txt2img_variations_Objects(self, file_path: str, filename: str, prompt: str, height: int, width: int, seed: int, steps: int, plms: bool, model: str) -> Union[discord.Embed, discord.File, discord.ui.View]:
+        embed = discord.Embed(title="Stable Diffusion txt2img Variations", color=0x2f3136)
+        file = discord.File(file_path, filename=filename)
+        embed.set_image(url=f"attachment://{filename}")
+
+        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScales: `3.0 - 11.0`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
         view = txt2img.View_txt2img_variations(self.bot, prompt, height, width, seed, plms, model)
 
