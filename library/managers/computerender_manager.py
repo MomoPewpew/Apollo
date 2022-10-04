@@ -1,8 +1,8 @@
 import io
+import math
 import os
 import shutil
 from urllib import parse
-from urllib.request import Request, urlopen
 import aiohttp
 import discord
 
@@ -28,7 +28,54 @@ class Computerender_manager(object):
         await self.respond(interaction, "txt2img", prompt, 10)
 
         if batch:
-            pass
+            img = []
+
+            pricePerStep = ((width * height) / (512 * 512)) * 0.0025 / 50
+            steps = max(15, int(0.001 / pricePerStep))
+
+            for n in range(9):
+                img.append(await self.computerender_single(prompt, height, width, seed + n, scale, steps, plms))
+            
+            new_size = ((width * 3 + 8), (height * 3 + 8))
+            grid = Image.new("RGB", new_size)
+
+            for n in range(len(img)):
+                row = math.floor(n / 3)
+                column = (n %3)
+
+                grid.paste(img[n], (((2 + width) * column + 2), ((2 + height) * row + 2)))
+            
+            grid = grid.resize((width, height), Image.ANTIALIAS)
+
+            path = os.path.join("./out/", f"instance_-1")
+            if not os.path.exists(path):
+                os.mkdir(path)
+            
+            for fileName in os.listdir(path):
+                file_path = os.path.join(path, fileName)
+                try:
+                    if os.path.isfile(file_path) or os.path.islink(file_path):
+                        os.unlink(file_path)
+                    elif os.path.isdir(file_path):
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+            baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+            fileName = f"batch-{baseFileName}-{seed}.png"
+            file_path = f"{path}/{fileName}"
+
+            grid.save(file_path, "png")
+            
+            embed = discord.Embed(title="Stable Diffusion txt2img Batch", color=0x2f3136)
+            file = discord.File(file_path, filename=fileName)
+            embed.set_image(url=f"attachment://{fileName}")
+
+            model = "Stable Diffusion 1.4"
+
+            embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{model}`"
+
+            view = txt2img.View_txt2img_batch(self.bot, prompt, height, width, seed, scale, plms, model)
         else:
             img = await self.computerender_single(prompt, height, width, seed, scale, steps, plms)
 
@@ -62,25 +109,25 @@ class Computerender_manager(object):
 
             view = txt2img.View_txt2img_single(self.bot, prompt, height, width, seed, scale, steps, plms, model)
 
-            user = interaction.user
-            userID = user.id
-            channelID = interaction.channel.id
-            userIDTemp = self.bot.user_manager.get_user_id(user)
+        user = interaction.user
+        userID = user.id
+        channelID = interaction.channel.id
+        userIDTemp = self.bot.user_manager.get_user_id(user)
 
-            if (self.bot.user_manager.is_user_privacy_mode(userIDTemp)):
-                await user.send(f"Here is the output for your task.",embed=embed, file=file)
+        if (self.bot.user_manager.is_user_privacy_mode(userIDTemp)):
+            await user.send(f"Here is the output for your task.",embed=embed, file=file)
+        else:
+            if file == None:
+                await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, view=view)
             else:
-                if file == None:
-                    await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, view=view)
-                else:
-                    message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, file=file, view=view)
+                message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, file=file, view=view)
 
-                    image_url = message.embeds[0].image.url
+                image_url = message.embeds[0].image.url
 
-                    if view is not None:
-                        for child in view.children:
-                            if (hasattr(child, "img_url")):
-                                child.img_url = image_url
+                if view is not None:
+                    for child in view.children:
+                        if (hasattr(child, "img_url")):
+                            child.img_url = image_url
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         returnString = f"Your task will be processed and should be done in `{queue_estimate} seconds`."
