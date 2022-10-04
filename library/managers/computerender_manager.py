@@ -4,9 +4,8 @@ from urllib import parse
 from urllib.request import Request, urlopen
 import discord
 
-from ..cogs import txt2img, tag
+from ..cogs import txt2img
 from .. import bot
-from ..db import db
 from PIL import Image
 
 class Computerender_manager(object):
@@ -82,42 +81,11 @@ class Computerender_manager(object):
                                 child.img_url = image_url
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
-        returnString1 = f"Your task will be processed and should be done in `{queue_estimate} seconds`."
-
-        returnString = returnString1
+        returnString = f"Your task will be processed and should be done in `{queue_estimate} seconds`."
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
         if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
-            promptTags = self.bot.user_manager.get_tags_active_csv(userID)
-            if promptID := self.bot.prompt_manager.get_promptID(userID, promptString) is not None:
-                tagsOld = db.field("SELECT promptTags FROM prompts WHERE promptID = ?",
-                    promptID
-                )
-
-                if tagsOld != promptTags:
-                    db.execute("UPDATE prompts SET promptTags = ? WHERE promptID = ?",
-                        promptTags,
-                        promptID
-                    )
-                    returnString += f"\nThe prompt `{promptString}` has been updated to match the tags `" + promptTags[1:-1] + "`"
-                
-                await interaction.response.send_message(content=returnString, ephemeral=True)
-            else:
-                if db.field("SELECT promptID FROM prompts WHERE promptID = 1") == None:
-                    promptID = 1
-                else:
-                    promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
-
-                self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
-
-                if (promptTags == ","):
-                    returnString += f"\nThe prompt `{promptString}` was saved to your history but you had no active tags."
-                else:
-                    returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`"
-                
-                returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
-
-                await interaction.response.send_message(content=returnString, view=tag.View_forget_prompt(self.bot.prompt_manager, promptID, returnString1), ephemeral=True)
+            self.bot.task_manager.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
 

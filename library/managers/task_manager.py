@@ -34,49 +34,51 @@ class Task_manager(object):
             taskID = db.field("SELECT MAX(taskID) FROM tasks") + 1
 
         if self.bot.instance_manager.all_instances_stopping():
-            returnString1 = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
+            returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
         else:
             mins = math.ceil(queue_estimate / 60)
             if mins > 1: append = "s"
             else: append = ""
-            returnString1 = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
-
-        returnString = returnString1
+            returnString = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
         if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
-            promptTags = self.bot.user_manager.get_tags_active_csv(userID)
-            if promptID := self.bot.prompt_manager.get_promptID(userID, promptString) is not None:
-                tagsOld = db.field("SELECT promptTags FROM prompts WHERE promptID = ?",
-                    promptID
-                )
-
-                if tagsOld != promptTags:
-                    db.execute("UPDATE prompts SET promptTags = ? WHERE promptID = ?",
-                        promptTags,
-                        promptID
-                    )
-                    returnString += f"\nThe prompt `{promptString}` has been updated to match the tags `" + promptTags[1:-1] + "`"
-                
-                await interaction.response.send_message(content=returnString, ephemeral=True)
-            else:
-                if db.field("SELECT promptID FROM prompts WHERE promptID = 1") == None:
-                    promptID = 1
-                else:
-                    promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
-
-                self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
-
-                if (promptTags == ","):
-                    returnString += f"\nThe prompt `{promptString}` was saved to your history but you had no active tags."
-                else:
-                    returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`"
-                
-                returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
-
-                await interaction.response.send_message(content=returnString, view=tag.View_forget_prompt(self.bot.prompt_manager, promptID, returnString1), ephemeral=True)
+            self.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
+    
+    async def add_prompt_and_respond(self, interaction: discord.Interaction, promptType: str, promptString: str, returnString1: int, userID: int):
+        returnString = returnString1
+        promptTags = self.bot.user_manager.get_tags_active_csv(userID)
+        if promptID := self.bot.prompt_manager.get_promptID(userID, promptString) is not None:
+            tagsOld = db.field("SELECT promptTags FROM prompts WHERE promptID = ?",
+                promptID
+            )
+
+            if tagsOld != promptTags:
+                db.execute("UPDATE prompts SET promptTags = ? WHERE promptID = ?",
+                    promptTags,
+                    promptID
+                )
+                returnString += f"\nThe prompt `{promptString}` has been updated to match the tags `" + promptTags[1:-1] + "`"
+            
+            await interaction.response.send_message(content=returnString, ephemeral=True)
+        else:
+            if db.field("SELECT promptID FROM prompts WHERE promptID = 1") == None:
+                promptID = 1
+            else:
+                promptID = db.field("SELECT MAX(promptID) FROM prompts") + 1
+
+            self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
+
+            if (promptTags == ","):
+                returnString += f"\nThe prompt `{promptString}` was saved to your history but you had no active tags."
+            else:
+                returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`"
+            
+            returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
+
+            await interaction.response.send_message(content=returnString, view=tag.View_forget_prompt(self.bot.prompt_manager, promptID, returnString1), ephemeral=True)
 
     async def start_task_backlog(self):
         db.execute("UPDATE tasks SET server = NULL, timeSent = NULL WHERE timeReceived IS NULL")
