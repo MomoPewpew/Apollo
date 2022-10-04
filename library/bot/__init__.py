@@ -14,7 +14,7 @@ import logging
 APP_ID = 1008367927533244547
 OWNER_IDS = [108296164599734272]
 COGS = [path.split("\\")[-1][:-3] for path in glob("./library/cogs/*.py")]
-GUILDS = [discord.Object(id = 1008374239688151111), discord.Object(id = 1024039041647251546)]
+GUILDS = [discord.Object(id = 1008374239688151111), discord.Object(id = 971479608664924202)]
 
 class Bot(BotBase):
     daedalusBasePath = "/home/ubuntu/Daedalus"
