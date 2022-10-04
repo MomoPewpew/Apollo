@@ -1,9 +1,11 @@
+import re
 from typing import Any, Union
+
 from .. import bot
 from ..db import db
 import discord
-from ..cogs import txt2img, img2img
-from discord.ui import View, Select, Modal
+from ..cogs import txt2img, img2img, threedinpainting
+from discord.ui import View, Select, Modal, TextInput
 
 class Output_manager(object):
     def __init__(self, bot: bot) -> None:
@@ -223,6 +225,7 @@ class Select_effects(Select):
             discord.SelectOption(label="upscale_real-esrgan", value="realesrgangan", emoji="↔", description="General purpose upscaling"),
             discord.SelectOption(label="upscale_gfpgan", value="gfpgan", emoji="↔", description="Upscaling with AI face correction"),
             discord.SelectOption(label="style_arcane", value="arcanegan", emoji="🎨", description="Convert into the art style of the animated series Arcane"),
+            discord.SelectOption(label="3dinpainting", value="3dinpainting", emoji="📦", description="Bring an image to life with a 3D animation"),
         ]
 
         super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
@@ -234,5 +237,53 @@ class Select_effects(Select):
             await self.bot.get_cog("upscale").function_style_realesrgan(interaction, self.img_url)
         elif self.values[0] == "gfpgan":
             await self.bot.get_cog("upscale").function_style_gfpgan(interaction, self.img_url)
+        elif self.values[0] == "3dinpainting":
+            cog = self.bot.get_cog("threedinpainting")
+            modal = Modal_3dinpainting(cog, self.img_url)
+            await interaction.response.send_modal(modal)
         
         return await super().callback(interaction)
+
+class Modal_3dinpainting(Modal):
+    def __init__(self,
+        threedinpaintingCog: threedinpainting.threedinpainting,
+        img_url: str
+    ) -> None:
+        super().__init__(title="3D Inpainting")
+        self.threedinpaintingCog = threedinpaintingCog
+        self.img_url = img_url
+
+        options = [
+            discord.SelectOption(label="Dolly Zoom-In", value="/plugins/3d-photo-inpainting/dolly_zoom_in.yml", default=True)
+        ]
+
+        #self.styleSelect = Select(placeholder="style", options=options)
+        #self.add_item(self.styleSelect)
+        self.num_framesField = TextInput(label="num_frames", style=discord.TextStyle.short, placeholder="Integer", default=240, required=True)
+        self.add_item(self.num_framesField)
+        self.fpsField = TextInput(label="fps", style=discord.TextStyle.short, placeholder="Integer", default=40, required=True)
+        self.add_item(self.fpsField)
+
+    async def on_submit(self, interaction: discord.Interaction) -> None:
+        pattern2 = re.compile("^[0-9]+$")
+        if self.num_framesField.value != "" and not pattern2.match(self.num_framesField.value):
+            await interaction.response.send_message("num_frames must be a positive integer", ephemeral=True)
+            return
+
+        num_frames = int(self.num_framesField.value)
+
+        if self.fpsField.value != "" and not pattern2.match(self.fpsField.value):
+            await interaction.response.send_message("num_frames must be a positive integer", ephemeral=True)
+            return
+
+        fps = int(self.fpsField.value)
+
+        await self.threedinpaintingCog.function_style_3dinpainting(
+            interaction,
+            self.img_url,
+            "/plugins/3d-photo-inpainting/dolly_zoom_in.yml",
+            num_frames,
+            fps
+        )
+            
+        return await super().on_submit(interaction)

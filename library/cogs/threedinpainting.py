@@ -28,7 +28,7 @@ class threedinpainting(Cog):
         self,
         interaction: discord.Interaction,
         url: str,
-        style: app_commands.Choice[str],
+        style: app_commands.Choice[str] = "/plugins/3d-photo-inpainting/dolly_zoom_in.yml",
         num_frames: int = 240,
         fps: int = 40
     ) -> None:
@@ -45,7 +45,7 @@ class threedinpainting(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        await self.bot.task_manager.task_command_main(interaction, 240, None, None, "3dInPainting", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function ThreeDInPaint --sourceURL \"{url}\" --args \"#arg#num_frames {num_frames} #arg#fps {fps} #arg#config {self.bot.daedalusBasePath}{style}\"")
+        await self.bot.task_manager.task_command_main(interaction, 600, None, None, "3dInPainting", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function ThreeDInPaint --sourceURL \"{url}\" --args \"#arg#num_frames {num_frames} #arg#fps {fps} #arg#config {self.bot.daedalusBasePath}{style}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
