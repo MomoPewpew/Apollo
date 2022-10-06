@@ -44,10 +44,10 @@ class Bot(BotBase):
         self.VERSION = version
 
         with open("./library/bot/token.0", "r", encoding="utf-8") as tf:
-            self.TOKEN = tf.read()
+            self.TOKEN = tf.read().strip()
         
         with open("./library/bot/computerender.0", "r", encoding="utf-8") as tf:
-            self.COMPUTERENDERKEY = tf.read()
+            self.COMPUTERENDERKEY = tf.read().strip()
         
         asyncio.run(self.main())
         return super().run()
