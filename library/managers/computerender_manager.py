@@ -50,7 +50,7 @@ class Computerender_manager(object):
 
             path = os.path.join("./out/", f"instance_-1")
             if not os.path.exists(path):
-                os.mkdirs(path)
+                os.makedirs(path)
             
             for filename in os.listdir(path):
                 file_path = os.path.join(path, filename)
@@ -94,7 +94,7 @@ class Computerender_manager(object):
 
                 path = os.path.join("./out/", f"instance_-1")
                 if not os.path.exists(path):
-                    os.mkdirs(path)
+                    os.makedirs(path)
                 
                 for filename in os.listdir(path):
                     file_path = os.path.join(path, filename)
@@ -120,7 +120,7 @@ class Computerender_manager(object):
 
                 path = os.path.join("./out/", f"instance_-1")
                 if not os.path.exists(path):
-                    os.mkdirs(path)
+                    os.makedirs(path)
                 
                 for filename in os.listdir(path):
                     file_path = os.path.join(path, filename)
