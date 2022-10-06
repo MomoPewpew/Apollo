@@ -300,7 +300,7 @@ class Instance_manager(object):
         path = os.path.join("./out/", f"instance_{index}")
 
         if not os.path.exists(path):
-            os.mkdir(path)
+            os.mkdirs(path)
 
         for filename in os.listdir(path):
             file_path = os.path.join(path, filename)
