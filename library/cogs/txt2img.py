@@ -8,7 +8,6 @@ from discord.ext.commands import Cog
 from ..managers import output_manager
 from .. import bot
 from discord.ui import View, Button, Modal, Select, TextInput
-from ..db import db
 from . import img2img
 
 COG_NAME = "txt2img"

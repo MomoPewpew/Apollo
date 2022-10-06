@@ -1,6 +1,5 @@
 from ..db import db
 from .. import bot
-import discord
 
 class Prompt_manager(object):
     def __init__(self, bot: bot) -> None:

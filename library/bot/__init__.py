@@ -133,5 +133,5 @@ class Bot(BotBase):
             raise exception
         return await super().on_command_error(context, exception)
 
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 bot = Bot()
