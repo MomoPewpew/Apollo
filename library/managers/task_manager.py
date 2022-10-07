@@ -42,14 +42,14 @@ class Task_manager(object):
             returnString = f"Task `{taskID}` will be processed and should be done in `{mins} minute{append}`."
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
-        if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
-            await self.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
+        promptTags = self.bot.user_manager.get_tags_active_csv(userID)
+        if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID) and not promptTags == ","):
+            await self.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID, promptTags)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
     
-    async def add_prompt_and_respond(self, interaction: discord.Interaction, promptType: str, promptString: str, returnString1: int, userID: int):
+    async def add_prompt_and_respond(self, interaction: discord.Interaction, promptType: str, promptString: str, returnString1: int, userID: int, promptTags: str):
         returnString = returnString1
-        promptTags = self.bot.user_manager.get_tags_active_csv(userID)
         if promptID := self.bot.prompt_manager.get_promptID(userID, promptString) is not None:
             tagsOld = db.field("SELECT promptTags FROM prompts WHERE promptID = ?",
                 promptID
@@ -71,12 +71,7 @@ class Task_manager(object):
 
             self.bot.prompt_manager.add_prompt(promptType, promptString, userID)
 
-            if (promptTags == ","):
-                returnString += f"\nThe prompt `{promptString}` was saved to your history but you had no active tags."
-            else:
-                returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`"
-            
-            returnString += "\nIf you would like to delete this prompt from your history then press the `Forget` button."
+            returnString += f"\nThe prompt `{promptString}` was saved to your history under the tags `" + promptTags[1:-1] + "`\nIf you would like to delete this prompt from your history then press the `Forget` button."
 
             await interaction.response.send_message(content=returnString, view=tag.View_forget_prompt(self.bot.prompt_manager, promptID, returnString1), ephemeral=True)
 

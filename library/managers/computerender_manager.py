@@ -164,8 +164,9 @@ class Computerender_manager(object):
         returnString = f"Your task will be processed and should be done in `{queue_estimate} seconds`."
 
         userID = self.bot.user_manager.get_user_id(interaction.user)
-        if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID)):
-            await self.bot.task_manager.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID)
+        promptTags = self.bot.user_manager.get_tags_active_csv(userID)
+        if (promptType is not None and promptString is not None and not self.bot.user_manager.is_user_privacy_mode(userID) and not promptTags == ","):
+            await self.bot.task_manager.add_prompt_and_respond(interaction, promptType, promptString, returnString, userID, promptTags)
         else:
             await interaction.response.send_message(content=returnString, ephemeral=True)
 
