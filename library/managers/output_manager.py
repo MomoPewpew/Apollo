@@ -60,7 +60,7 @@ class Output_manager(object):
             taskID
         )
 
-        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5].replace(",", "\\,")
+        prompt = self.get_encoded_argument_from_instructions(instructions, "prompt")[4:-5]
         height = int(self.get_encoded_argument_from_instructions(instructions, "H"))
         width = int(self.get_encoded_argument_from_instructions(instructions, "W"))
         seed = int(self.get_encoded_argument_from_instructions(instructions, "seed"))
