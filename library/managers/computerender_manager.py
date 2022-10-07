@@ -63,6 +63,7 @@ class Computerender_manager(object):
                     print('Failed to delete %s. Reason: %s' % (file_path, e))
 
             baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+            while "__" in baseFileName: baseFileName = baseFileName.replace("__", "_")
             filename = f"batch-{baseFileName}-{seed}.png"
             file_path = f"{path}/{filename}"
 
@@ -107,6 +108,7 @@ class Computerender_manager(object):
                         print('Failed to delete %s. Reason: %s' % (file_path, e))
 
                 baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+                while "__" in baseFileName: baseFileName = baseFileName.replace("__", "_")
                 filename = f"variations-{baseFileName}-{seed}.png"
                 file_path = f"{path}/{filename}"
 
@@ -133,6 +135,7 @@ class Computerender_manager(object):
                         print('Failed to delete %s. Reason: %s' % (file_path, e))
 
                 baseFileName = prompt[:min(len(prompt), 50)].replace(" ", "_").replace("\\", "_").replace("/", "_").replace(":", "_").replace("*", "_").replace("?", "_").replace("\"", "_").replace("<", "_").replace(">", "_").replace("|", "_")
+                while "__" in baseFileName: baseFileName = baseFileName.replace("__", "_")
                 filename = f"{baseFileName}-{seed}.png"
                 file_path = f"{path}/{filename}"
 
