@@ -268,32 +268,25 @@ class Task_manager(object):
         userIDTemp = self.bot.user_manager.get_user_id(user)
 
         if (self.bot.user_manager.is_user_privacy_mode(userIDTemp)):
-            #TODO: Check to see if the file check is actually neccesary?
-            if file == None:
-                await user.send(f"Here is the output for task `{taskID}`.",embed=embed)
-            else:
-                await user.send(f"Here is the output for task `{taskID}`.",embed=embed, file=file)
+            message = await user.send(f"Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
             
             db.execute("UPDATE tasks SET instructions = 'Privacy', output = 'Privacy' WHERE taskID = ?",
                 taskID
             )
         else:
-            if file == None:
-                await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, view=view)
-            else:
-                message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
+            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
 
-                image_url = message.embeds[0].image.url
+        image_url = message.attachments[0].url
 
-                db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
-                    image_url,
-                    taskID
-                )
+        db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
+            image_url,
+            taskID
+        )
 
-                if view is not None:
-                    for child in view.children:
-                        if (hasattr(child, "img_url")):
-                            child.img_url = image_url
+        if view is not None:
+            for child in view.children:
+                if (hasattr(child, "img_url")):
+                    child.img_url = image_url
 
     def is_url_image(self, url) -> bool:
         ##urllib is not allowed to access discord attachments, so we just check the url for those

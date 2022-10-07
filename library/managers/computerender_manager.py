@@ -146,19 +146,16 @@ class Computerender_manager(object):
         userIDTemp = self.bot.user_manager.get_user_id(user)
 
         if (self.bot.user_manager.is_user_privacy_mode(userIDTemp)):
-            await user.send(f"Here is the output for your task.",embed=embed, file=file)
+            message = await user.send(f"Here is the output for your task.",embed=embed, file=file, view=view)
         else:
-            if file == None:
-                await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, view=view)
-            else:
-                message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, file=file, view=view)
+            message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, file=file, view=view)
 
-                image_url = message.embeds[0].image.url
+        image_url = message.attachments[0].url
 
-                if view is not None:
-                    for child in view.children:
-                        if (hasattr(child, "img_url")):
-                            child.img_url = image_url
+        if view is not None:
+            for child in view.children:
+                if (hasattr(child, "img_url")):
+                    child.img_url = image_url
 
     async def respond(self, interaction: discord.Interaction, promptType: str, promptString: str, queue_estimate: int) -> None:
         returnString = f"Your task will be processed and should be done in `{queue_estimate} seconds`."
