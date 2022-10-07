@@ -150,7 +150,10 @@ class Computerender_manager(object):
         else:
             message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for your task.",embed=embed, file=file, view=view)
 
-        image_url = message.attachments[0].url
+        if (len(message.attachments) > 0):
+            image_url = message.attachments[0].url
+        else:
+            image_url = message.embeds[0].image.url
 
         if view is not None:
             for child in view.children:

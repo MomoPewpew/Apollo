@@ -276,8 +276,11 @@ class Task_manager(object):
         else:
             message = await self.bot.get_channel(channelID).send(f"{self.bot.get_user(userID).mention} Here is the output for task `{taskID}`.",embed=embed, file=file, view=view)
 
-        image_url = message.attachments[0].url
-
+        if (len(message.attachments) > 0):
+            image_url = message.attachments[0].url
+        else:
+            image_url = message.embeds[0].image.url
+            
         db.execute("UPDATE tasks SET output = ? WHERE taskID = ?",
             image_url,
             taskID
