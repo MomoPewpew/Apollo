@@ -32,7 +32,7 @@ class upscale(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function realesrgangan --sourceURL \"{url}\"")
+        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function realesrgan --sourceURL \"{url}\"")
     
     @app_commands.command(
         name="upscale_gfpgan",
@@ -56,7 +56,7 @@ class upscale(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function realesrgangan --sourceURL \"{url}\" --args \"#arg#face_enhance\"")
+        await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function gfpgan --sourceURL \"{url}\"")
 
     @Cog.listener()
     async def on_ready(self) -> None:
