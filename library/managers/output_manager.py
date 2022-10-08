@@ -76,7 +76,8 @@ class Output_manager(object):
         file = discord.File(file_path, filename=filename)
         embed.set_image(url=f"attachment://{filename}")
 
-        embed.description = f"Prompt: `{prompt}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
+        promptTemp = prompt.replace(",", "")
+        embed.description = f"Prompt: `{promptTemp}`\nDimensions: `{width}x{height}`\nSeed: `{seed}`\nScale: `{scale}`\nSteps: `{steps}`\nPLMS: `{plms}`\nModel: `{self.get_model_name_from_ckpt(model)}`"
 
         view = txt2img.View_txt2img_single(self.bot, prompt, height, width, seed, scale, steps, plms, model)
 
