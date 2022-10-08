@@ -466,7 +466,7 @@ class Modal_img2img_revise(Modal):
                 await interaction.response.send_message("Steps must be a positive integer", ephemeral=True)
                 return
 
-            steps = self.stepsField.value
+            steps = int(self.stepsField.value)
 
         await self.img2imgCog.function_img2img(interaction,
             prompt,
