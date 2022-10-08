@@ -27,7 +27,7 @@ class img2img(Cog):
         seed = "The RNG seed. If you want to make something that looks like a previous output, use the same seed",
         scale = "How strictly should I follow your prompt? A lower scale allows me to take more creative liberties",
         strength = "How closely should the output resemble the initiation image? Lower strength means more resemblance",
-        steps = "How much time should I spend refining the image? Batches are locked at 15 steps",
+        steps = "How much time should I spend refining the image? 1-150.",
         batch = "Shall I mass-produce a sample platter of crude images, or a single refined one?",
         model = "What set of training data would you like me to use?"
     )
@@ -73,6 +73,10 @@ class img2img(Cog):
     ) -> None:
         if not self.bot.task_manager.is_url_image(init_img_url):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
+            return
+
+        if steps > 150 or steps < 1:
+            await interaction.response.send_message(f"The step count may not exceed 150 and must be positive. Your prompt was `{prompt}`", ephemeral=True)
             return
 
         seed = int(random.randrange(4294966294)) if seed is None else seed

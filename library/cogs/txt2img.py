@@ -24,11 +24,11 @@ class txt2img(Cog):
     )
     @app_commands.describe(
         prompt = "Describe the desired output image. Use commas to separate different parts of your description",
-        height = "The height of the output image in pixels. This must be a multiple of 64",
-        width = "The width of the output image in pixels. This must be a multiple of 64",
+        height = "The height of the output image in pixels. 128-1536, multiples of 64 only",
+        width = "The width of the output image in pixels. 128-1536, multiples of 64 only",
         seed = "The RNG seed. If you want to make something that looks like a previous output, use the same seed",
         scale = "How strictly should I follow your prompt? A lower scale allows me to take more creative liberties",
-        steps = "How much time should I spend refining the image? Batches are locked at 15 steps",
+        steps = "How much time should I spend refining the image? 1-150.",
         plms = "Use PLMS sampling instead of regular sampling. This will give you a different output",
         batch = "Shall I mass-produce a sample platter of crude images, or a single refined one?",
         model = "What set of training data would you like me to use?"
