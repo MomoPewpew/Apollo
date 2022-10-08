@@ -76,8 +76,12 @@ class txt2img(Cog):
         batch: bool,
         model: str
     ) -> None:
-        if height %64 != 0 or width %64 != 0:
-            await interaction.response.send_message(f"The height and width must be a multiple of 64. Your prompt was `{prompt}`", ephemeral=True)
+        if height %64 != 0 or width %64 != 0 or height < 128 or height > 1536 or width < 128 or width > 1536:
+            await interaction.response.send_message(f"The height and width must be a multiple of 64. They must also be at least 128 and no more than 1536. Your prompt was `{prompt}`", ephemeral=True)
+            return
+
+        if steps > 150 or steps < 1:
+            await interaction.response.send_message(f"The step count may not exceed 150 and must be positive. Your prompt was `{prompt}`", ephemeral=True)
             return
 
         seed = int(random.randrange(4294966294)) if seed is None else seed
