@@ -34,7 +34,7 @@ class Task_manager(object):
             taskID = db.field("SELECT MAX(taskID) FROM tasks") + 1
 
         if self.bot.instance_manager.all_instances_stopping():
-            returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes."
+            returnString = f"All instances are currently cooling down, so task `{taskID}` will be processed in a couple of minutes. Feel free to keep using computerender operations (txt2img)"
         else:
             mins = math.ceil(queue_estimate / 60)
             if mins > 1: append = "s"
