@@ -75,7 +75,7 @@ class img2img(Cog):
             await interaction.response.send_message("The URL that you have provided does not appear to be an image.", ephemeral=True)
             return
 
-        if steps > 150 or steps < 1:
+        if steps is None or steps > 150 or steps < 1:
             await interaction.response.send_message(f"The step count may not exceed 150 and must be positive. Your prompt was `{prompt}`", ephemeral=True)
             return
 
