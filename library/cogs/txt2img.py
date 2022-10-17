@@ -49,8 +49,14 @@ class txt2img(Cog):
         steps: int = 50,
         plms: bool = True,
         batch: bool = False,
-        model: app_commands.Choice[str] = "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt"
+        model: app_commands.Choice[str] = "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt",
+        boobies: bool = True
     ) -> None:
+        if boobies:
+            self.useComputerEnder = False
+        else:
+            self.useComputerEnder = True
+            
         await self.function_txt2img(
             interaction,
             prompt,
