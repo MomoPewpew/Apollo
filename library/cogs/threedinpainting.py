@@ -35,7 +35,7 @@ class threedinpainting(Cog):
         await self.function_style_3dinpainting(
             interaction,
             url,
-            style.value,
+            style,
             num_frames,
             fps
         )
