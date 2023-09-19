@@ -15,7 +15,6 @@ COG_NAME = "txt2img"
 class txt2img(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
-        self.enabled = True
         self.useComputerEnder = True
         super().__init__()
 
