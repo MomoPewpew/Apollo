@@ -39,8 +39,7 @@ class upscale(Cog):
     '''
     @app_commands.command(
         name="upscale_gfpgan",
-        description = "Upscaling with face correction",
-        guild_id=0000000000000000000
+        description = "Upscaling with face correction"
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
