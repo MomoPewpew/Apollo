@@ -19,7 +19,8 @@ class img2img(Cog):
 
     @app_commands.command(
         name=COG_NAME,
-        description = "Convert a text prompt into an image"
+        description = "Convert a text prompt into an image",
+        guild_id=0000000000000000000
     )
     @app_commands.describe(
         prompt = "Describe the desired output image. Use commas to separate different parts of your description",

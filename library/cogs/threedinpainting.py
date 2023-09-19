@@ -12,7 +12,8 @@ class threedinpainting(Cog):
 
     @app_commands.command(
         name="3dinpainting",
-        description = "Bring an image to life with a 3D animation"
+        description = "Bring an image to life with a 3D animation",
+        guild_id=0000000000000000000
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp",

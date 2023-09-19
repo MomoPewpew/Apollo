@@ -12,7 +12,8 @@ class style(Cog):
 
     @app_commands.command(
         name="style_arcane",
-        description = "Convert an image at the provided URL into the animation style of Arcane"
+        description = "Convert an image at the provided URL into the animation style of Arcane",
+        guild_id=0000000000000000000
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"

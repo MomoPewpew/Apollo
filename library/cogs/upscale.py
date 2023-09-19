@@ -12,7 +12,8 @@ class upscale(Cog):
 
     @app_commands.command(
         name="upscale_real-esrgan",
-        description = "General purpose image upscaling"
+        description = "General purpose image upscaling",
+        guild_id=0000000000000000000
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
@@ -36,7 +37,8 @@ class upscale(Cog):
     
     @app_commands.command(
         name="upscale_gfpgan",
-        description = "Upscaling with face correction"
+        description = "Upscaling with face correction",
+        guild_id=0000000000000000000
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
