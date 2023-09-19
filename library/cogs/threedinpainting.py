@@ -10,10 +10,10 @@ class threedinpainting(Cog):
         self.bot = bot
         super().__init__()
 
+    '''
     @app_commands.command(
         name="3dinpainting",
-        description = "Bring an image to life with a 3D animation",
-        guild_id=0000000000000000000
+        description = "Bring an image to life with a 3D animation"
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp",
@@ -40,6 +40,7 @@ class threedinpainting(Cog):
             num_frames,
             fps
         )
+    '''
 
     async def function_style_3dinpainting(self, interaction: discord.Interaction, url: str, style: str, num_frames: int, fps: int) -> None:
         if not self.bot.task_manager.is_url_image(url):

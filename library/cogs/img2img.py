@@ -17,10 +17,10 @@ class img2img(Cog):
         self.bot = bot
         super().__init__()
 
+    '''
     @app_commands.command(
         name=COG_NAME,
-        description = "Convert a text prompt into an image",
-        guild_id=0000000000000000000
+        description = "Convert a text prompt into an image"
     )
     @app_commands.describe(
         prompt = "Describe the desired output image. Use commas to separate different parts of your description",
@@ -60,6 +60,7 @@ class img2img(Cog):
             batch,
             model
         )
+    '''
 
     async def function_img2img(self,
         interaction: discord.Interaction,

@@ -10,10 +10,10 @@ class upscale(Cog):
         self.bot = bot
         super().__init__()
 
+    '''
     @app_commands.command(
         name="upscale_real-esrgan",
-        description = "General purpose image upscaling",
-        guild_id=0000000000000000000
+        description = "General purpose image upscaling"
     )
     @app_commands.describe(
         url = "The URL to the original image. This must end in .png, .jpg, .jpeg or .bmp"
@@ -27,6 +27,7 @@ class upscale(Cog):
             interaction,
             url
         )
+    '''
 
     async def function_style_realesrgan(self, interaction: discord.Interaction, url: str) -> None:
         if not self.bot.task_manager.is_url_image(url):
@@ -35,6 +36,7 @@ class upscale(Cog):
 
         await self.bot.task_manager.task_command_main(interaction, 20, None, None, "image", f"python3 {self.bot.daedalusBasePath}/daedalus.py --function realesrgan --sourceURL \"{url}\"")
     
+    '''
     @app_commands.command(
         name="upscale_gfpgan",
         description = "Upscaling with face correction",
@@ -52,6 +54,7 @@ class upscale(Cog):
             interaction,
             url
         )
+    '''
 
     async def function_style_gfpgan(self, interaction: discord.Interaction, url: str) -> None:
         if not self.bot.task_manager.is_url_image(url):
