@@ -237,7 +237,7 @@ class Select_effects(Select):
             discord.SelectOption(label="3dinpainting", value="3dinpainting", emoji="📦", description="Dolly Zoom-In effect"),
         ]
 
-        super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1)
+        super().__init__(custom_id="select_effects", placeholder="🔮 Process image", options=options, row=1, disabled=True)
 
     async def callback(self, interaction: discord.Interaction) -> Any:
         if self.values[0] == "arcanegan":

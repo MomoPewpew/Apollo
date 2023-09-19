@@ -61,8 +61,9 @@ class Bot(BotBase):
 
     async def setup(self) -> None:
         for cog in COGS:
-            await self.load_extension( f"library.cogs.{cog}")
-            print(f"  {cog} cog loaded")
+            if (cog.enabled == True):
+                await self.load_extension( f"library.cogs.{cog}")
+                print(f"  {cog} cog loaded")
         
         print("Setup complete")
 

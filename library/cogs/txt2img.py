@@ -15,6 +15,7 @@ COG_NAME = "txt2img"
 class txt2img(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
+        self.enabled = True
         self.useComputerEnder = True
         super().__init__()
 
@@ -285,7 +286,7 @@ class Button_txt2img_iterate(Button):
         scale: float,
         model: str
     ) -> None:
-        super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate")
+        super().__init__(style=discord.ButtonStyle.grey, label="Iterate", emoji="↩", row=0, custom_id="button_txt2img_iterate", disabled=True)
         self.img_url: str = ""
         self.img2imgCog = img2imgCog
         self.prompt = prompt

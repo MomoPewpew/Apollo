@@ -15,6 +15,7 @@ COG_NAME = "img2img"
 class img2img(Cog):
     def __init__(self, bot:bot) -> None:
         self.bot = bot
+        self.enabled = False
         super().__init__()
 
     @app_commands.command(

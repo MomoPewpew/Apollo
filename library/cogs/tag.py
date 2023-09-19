@@ -13,6 +13,7 @@ COG_NAME = "tag"
 class Tag(Cog):
     def __init__(self, bot: bot) -> None:
         self.bot = bot
+        self.enabled = True
         super().__init__()
 
     @app_commands.command(
