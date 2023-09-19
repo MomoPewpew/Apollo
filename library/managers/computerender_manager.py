@@ -141,7 +141,7 @@ class Computerender_manager(object):
 
                 img.save(file_path, "png")
                 
-                embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_single_Objects(file_path, filename, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt")
+                embed, file, view = self.bot.task_manager.output_manager.receive_stablediffusion_txt2img_single_Objects(file_path, filename, prompt, height, width, seed, scale, steps, plms, "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v2-1.ckpt")
         
         user = interaction.user
         userID = user.id

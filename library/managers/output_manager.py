@@ -28,6 +28,8 @@ class Output_manager(object):
     def get_model_name_from_ckpt(self, model: str) -> str:
         if model == "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v1-4.ckpt":
             return "Stable Diffusion 1.4"
+        if model == "/plugins/stable-diffusion/models/ldm/stable-diffusion-v1/sd-v2-1.ckpt":
+            return "Stable Diffusion 2.1"
         else:
             return "Unknown"
 
